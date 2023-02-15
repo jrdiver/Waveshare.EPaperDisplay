@@ -208,7 +208,7 @@ namespace Waveshare.Common
         {
             bool busy;
 
-            var timeoutTimer = Stopwatch.StartNew();
+            Stopwatch timeoutTimer = Stopwatch.StartNew();
             do
             {
                 SendCommand(GetStatusCommand);
@@ -273,7 +273,7 @@ namespace Waveshare.Common
             DeviceInitialize();
 
             IsPalletMonochrome = true;
-            foreach (var color in SupportedByteColors)
+            foreach (ByteColor color in SupportedByteColors)
             {
                 if (!color.IsMonochrome)
                 {
@@ -381,12 +381,12 @@ namespace Waveshare.Common
         /// <returns></returns>
         public byte[] GetColoredLineOnDevice(ByteColor rgb)
         {
-            var devicePixel = GetMergedPixelDataInByte(rgb);
+            byte devicePixel = GetMergedPixelDataInByte(rgb);
 
-            var outputWidth = Width / PixelPerByte;
-            var outputLine = new byte[outputWidth];
+            int outputWidth = Width / PixelPerByte;
+            byte[] outputLine = new byte[outputWidth];
 
-            for (var x = 0; x < outputLine.Length; x++)
+            for (int x = 0; x < outputLine.Length; x++)
             {
                 outputLine[x] = devicePixel;
             }
@@ -401,19 +401,19 @@ namespace Waveshare.Common
         /// <returns>Color index of closest supported color</returns>
         public int GetColorIndex(ByteColor color)
         {
-            var minDistance = GetColorDistance(color, SupportedByteColors[0]);
+            double minDistance = GetColorDistance(color, SupportedByteColors[0]);
             if (minDistance < 1)
             {
                 return 0;
             }
 
-            var bestIndex = 0;
+            int bestIndex = 0;
 
-            for (var i = 1; i < SupportedByteColors.Length; i++)
+            for (int i = 1; i < SupportedByteColors.Length; i++)
             {
-                var monochrome = (color.R == color.G && color.G == color.B);
-                var deviceColor = SupportedByteColors[i];
-                var distance = GetColorDistance(color, deviceColor);
+                bool monochrome = (color.R == color.G && color.G == color.B);
+                ByteColor deviceColor = SupportedByteColors[i];
+                double distance = GetColorDistance(color, deviceColor);
                 if (distance <= minDistance && deviceColor.IsMonochrome == monochrome)
                 {
                     minDistance = distance;
@@ -447,11 +447,11 @@ namespace Waveshare.Common
                 return (color1.R - color2.R) * (color1.R - color2.R);
             }
 
-            var (y1, u1, v1) = GetYuv(color1);
-            var (y2, u2, v2) = GetYuv(color2);
-            var diffY = y1 - y2;
-            var diffU = u1 - u2;
-            var diffV = v1 - v2;
+            (double y1, double u1, double v1) = GetYuv(color1);
+            (double y2, double u2, double v2) = GetYuv(color2);
+            double diffY = y1 - y2;
+            double diffU = u1 - u2;
+            double diffV = v1 - v2;
 
             return diffY * diffY + diffU * diffU + diffV * diffV;
         }
@@ -465,9 +465,9 @@ namespace Waveshare.Common
         /// <param name="valueB">Blue value to add</param>
         protected static void AdjustRgb(ref ByteColor color, int valueR, int valueG, int valueB)
         {
-            var r = ConvertColorIntToByte(color.R + valueR);
-            var g = ConvertColorIntToByte(color.G + valueG);
-            var b = ConvertColorIntToByte(color.B + valueB);
+            byte r = ConvertColorIntToByte(color.R + valueR);
+            byte g = ConvertColorIntToByte(color.G + valueG);
+            byte b = ConvertColorIntToByte(color.B + valueB);
 
             color.SetBGR(b, g, r);
         }
@@ -481,15 +481,15 @@ namespace Waveshare.Common
         /// <param name="isLastLine"></param>
         protected void DitherAndWrite(ByteColor[,] data, int previousLine, int currentLine, bool isLastLine)
         {
-            for (var x = 0; x < Width; x++)
+            for (int x = 0; x < Width; x++)
             {
-                var currentPixel = data[x, previousLine];
-                var colorNdx = GetColorIndex(currentPixel);
-                var bestColor = SupportedByteColors[colorNdx];
+                ByteColor currentPixel = data[x, previousLine];
+                int colorNdx = GetColorIndex(currentPixel);
+                ByteColor bestColor = SupportedByteColors[colorNdx];
 
-                var errorR = currentPixel.R - bestColor.R;
-                var errorG = currentPixel.G - bestColor.G;
-                var errorB = currentPixel.B - bestColor.B;
+                int errorR = currentPixel.R - bestColor.R;
+                int errorG = currentPixel.G - bestColor.G;
+                int errorB = currentPixel.B - bestColor.B;
 
                 // Add 7/16 of the color difference to the pixel on the right
                 if (x < Width - 1)
@@ -571,18 +571,18 @@ namespace Waveshare.Common
             const int bitStates = 2;
             const int bitsInByte = 8;
 
-            var bitMoveLength = bitsInByte / PixelPerByte;
-            var maxValue = (byte) Math.Pow(bitStates, bitMoveLength) - 1;
+            int bitMoveLength = bitsInByte / PixelPerByte;
+            int maxValue = (byte) Math.Pow(bitStates, bitMoveLength) - 1;
 
             byte output = 0;
 
-            for (var i = 0; i < pixel.Length; i++)
+            for (int i = 0; i < pixel.Length; i++)
             {
-                var bitMoveValue = bitsInByte - bitMoveLength - (i * bitMoveLength); 
+                int bitMoveValue = bitsInByte - bitMoveLength - (i * bitMoveLength); 
 
-                var value = (byte)(pixel[i] << bitMoveValue);
-                var mask = maxValue << bitMoveValue;
-                var posValue = (byte)(value & mask);
+                byte value = (byte)(pixel[i] << bitMoveValue);
+                int mask = maxValue << bitMoveValue;
+                byte posValue = (byte)(value & mask);
 
                 output |= posValue;
             }
@@ -599,15 +599,15 @@ namespace Waveshare.Common
         /// <param name="maxY">Max Pixels Vertical</param>
         internal void SendBitmapToDevice(IntPtr scanLine, int stride, int maxX, int maxY)
         {
-            var inputLine = new byte[stride];
-            var pixel = new ByteColor(0, 0, 0);
+            byte[] inputLine = new byte[stride];
+            ByteColor pixel = new ByteColor(0, 0, 0);
 
-            for (var y = 0; y < maxY; y++, scanLine += stride)
+            for (int y = 0; y < maxY; y++, scanLine += stride)
             {
                 Marshal.Copy(scanLine, inputLine, 0, inputLine.Length);
 
-                var xPos = 0;
-                for (var x = 0; x < maxX; x++)
+                int xPos = 0;
+                for (int x = 0; x < maxX; x++)
                 {
                     pixel.SetBGR(inputLine[xPos++], inputLine[xPos++], inputLine[xPos++], IsPalletMonochrome);
                     if (ColorBytesPerPixel > 3)
@@ -617,14 +617,14 @@ namespace Waveshare.Common
                     DisplayWriter.Write(GetColorIndex(pixel));
                 }
 
-                for (var x = maxX; x < Width; x++)
+                for (int x = maxX; x < Width; x++)
                 {
                     DisplayWriter.WriteBlankPixel();
                 }
             }
 
             // Write blank lines if image is smaller than display.
-            for (var y = maxY; y < Height; y++)
+            for (int y = maxY; y < Height; y++)
             {
                 DisplayWriter.WriteBlankLine();
             }
@@ -641,16 +641,16 @@ namespace Waveshare.Common
         /// <param name="maxY">Max Pixels Vertical</param>
         internal void SendDitheredBitmapToDevice(IntPtr scanLine, int stride, int maxX, int maxY)
         {
-            var data = new ByteColor[Width, 2];
-            var currentLine = 0;
-            var previousLine = 1;
+            ByteColor[,] data = new ByteColor[Width, 2];
+            int currentLine = 0;
+            int previousLine = 1;
 
-            var inputLine = new byte[stride];
-            var pixel = new ByteColor(0, 0, 0);
-            var odd = false;
-            var dither = false;
+            byte[] inputLine = new byte[stride];
+            ByteColor pixel = new ByteColor(0, 0, 0);
+            bool odd = false;
+            bool dither = false;
 
-            for (var y = 0; y < maxY; y++, scanLine += stride)
+            for (int y = 0; y < maxY; y++, scanLine += stride)
             {
                 if (odd)
                 {
@@ -668,8 +668,8 @@ namespace Waveshare.Common
 
                 Marshal.Copy(scanLine, inputLine, 0, inputLine.Length);
 
-                var xPos = 0;
-                for (var x = 0; x < maxX; x++)
+                int xPos = 0;
+                for (int x = 0; x < maxX; x++)
                 {
                     pixel.SetBGR(inputLine[xPos++], inputLine[xPos++], inputLine[xPos++], IsPalletMonochrome);
                     if (ColorBytesPerPixel > 3)
@@ -679,7 +679,7 @@ namespace Waveshare.Common
                     data[x, currentLine] = pixel;
                 }
 
-                for (var x = maxX; x < Width; x++)
+                for (int x = maxX; x < Width; x++)
                 {
                     data[x, currentLine] = ByteColors.White;
                 }
@@ -694,7 +694,7 @@ namespace Waveshare.Common
             DitherAndWrite(data, currentLine, previousLine, true);
 
             // Write blank lines if image is smaller than display.
-            for (var y = maxY; y < Height; y++)
+            for (int y = maxY; y < Height; y++)
             {
                 DisplayWriter.WriteBlankLine();
             }
@@ -729,10 +729,10 @@ namespace Waveshare.Common
         /// <returns></returns>
         private byte GetMergedPixelDataInByte(ByteColor rgb)
         {
-            var pixelData = ColorToByte(rgb);
-            var deviceBytesPerPixel = new byte[PixelPerByte];
+            byte pixelData = ColorToByte(rgb);
+            byte[] deviceBytesPerPixel = new byte[PixelPerByte];
 
-            for (var i = 0; i < deviceBytesPerPixel.Length; i++)
+            for (int i = 0; i < deviceBytesPerPixel.Length; i++)
             {
                 deviceBytesPerPixel[i] = pixelData;
             }

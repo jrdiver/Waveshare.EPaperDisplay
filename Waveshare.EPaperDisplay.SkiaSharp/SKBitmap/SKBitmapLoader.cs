@@ -26,6 +26,7 @@
 #region Usings
 
 using System;
+using SkiaSharp;
 using Waveshare.Interfaces;
 using Waveshare.Interfaces.Internal;
 
@@ -60,10 +61,10 @@ namespace Waveshare.Image
         /// <returns></returns>
         protected override IRawImage LoadImage(SkiaSharp.SKBitmap image)
         {
-            var maxWith = Math.Min(Width, image.Width);
-            var maxHeight = Math.Min(Height, image.Height);
+            int maxWith = Math.Min(Width, image.Width);
+            int maxHeight = Math.Min(Height, image.Height);
 
-            var subSet = new SkiaSharp.SKBitmap();
+            SKBitmap subSet = new SkiaSharp.SKBitmap();
             image.ExtractSubset(subSet, new SkiaSharp.SKRectI(0, 0, maxWith, maxHeight));
 
             return new SKBitmapRawImage(image.Resize(new SkiaSharp.SKImageInfo(maxWith, maxHeight, SkiaSharp.SKColorType.Bgra8888), SkiaSharp.SKFilterQuality.High));

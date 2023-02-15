@@ -245,7 +245,7 @@ namespace Waveshare.Common
         /// <returns></returns>
         private static GpioController CreateGpioController()
         {
-            var gpioController = new GpioController();
+            GpioController gpioController = new GpioController();
             return gpioController;
         }
 
@@ -255,7 +255,7 @@ namespace Waveshare.Common
         /// <returns></returns>
         private static SpiDevice CreateSpiDevice()
         {
-            var spiConnectionSettings = new SpiConnectionSettings(0, 0);
+            SpiConnectionSettings spiConnectionSettings = new SpiConnectionSettings(0, 0);
             return SpiDevice.Create(spiConnectionSettings);
         }
 

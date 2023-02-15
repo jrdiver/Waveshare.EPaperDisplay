@@ -268,11 +268,11 @@ namespace Waveshare.Devices.Epd5in65F
         /// <param name="rgb">Color to fill the screen</param>
         private void FillColor(ByteColor rgb)
         {
-            var outputLine = GetColoredLineOnDevice(rgb);
+            byte[] outputLine = GetColoredLineOnDevice(rgb);
 
             SendCommand(StartDataTransmissionCommand);
 
-            for (var y = 0; y < Height; y++)
+            for (int y = 0; y < Height; y++)
             {
                 SendData(outputLine);
             }

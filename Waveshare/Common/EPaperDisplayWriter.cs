@@ -176,7 +176,7 @@ namespace Waveshare.Common
         /// <param name="index"></param>
         public virtual void Write(int index)
         {
-            var value = Display.DeviceByteColors[index];
+            byte value = Display.DeviceByteColors[index];
             m_ByteCount++;
 
             if (PixelPerByte == 1)

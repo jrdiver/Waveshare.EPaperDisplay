@@ -181,7 +181,7 @@ namespace Waveshare.Image
         /// <param name="image">Image to be displayed</param>
         public void DisplayImage(T image)
         {
-            using var rawImage = LoadImage(image);
+            using IRawImage rawImage = LoadImage(image);
             EPaperDisplay.ColorBytesPerPixel = rawImage.BytesPerPixel;
             EPaperDisplay.DisplayImage(rawImage, false);
         }
@@ -192,7 +192,7 @@ namespace Waveshare.Image
         /// <param name="image">Image to be displayed</param>
         public void DisplayImageWithDithering(T image)
         {
-            using var rawImage = LoadImage(image);
+            using IRawImage rawImage = LoadImage(image);
             EPaperDisplay.ColorBytesPerPixel = rawImage.BytesPerPixel;
             EPaperDisplay.DisplayImage(rawImage, true);
         }
