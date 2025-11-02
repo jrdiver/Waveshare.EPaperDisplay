@@ -27,7 +27,6 @@
 
 using System.Threading;
 using Waveshare.Common;
-using Waveshare.Devices.Epd5in65F;
 
 #endregion Usings
 
