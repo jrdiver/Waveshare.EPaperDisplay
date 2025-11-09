@@ -58,7 +58,7 @@ namespace Waveshare.Common
         /// <summary>
         /// GPIO SPI CS Pin Number
         /// </summary>
-        private const int GpioSpiCsPin = 8;
+        private const int GpioSpiCsPin = 0;
 
         /// <summary>
         /// GPIO Busy Pin Number
@@ -100,15 +100,6 @@ namespace Waveshare.Common
         }
 
         /// <summary>
-        /// GPIO SPI CS Pin
-        /// </summary>
-        public PinValue SpiCsPin
-        {
-            get => GpioController.Read(GpioSpiCsPin);
-            set => GpioController.Write(GpioSpiCsPin, value);
-        }
-
-        /// <summary>
         /// GPIO Busy Pin
         /// </summary>
         public PinValue BusyPin
@@ -142,15 +133,11 @@ namespace Waveshare.Common
 
             GpioController?.OpenPin(GpioResetPin);
             GpioController?.OpenPin(GpioSpiDcPin);
-            GpioController?.OpenPin(GpioSpiCsPin);
             GpioController?.OpenPin(GpioBusyPin);
 
             GpioController?.SetPinMode(GpioResetPin, PinMode.Output);
             GpioController?.SetPinMode(GpioSpiDcPin, PinMode.Output);
-            GpioController?.SetPinMode(GpioSpiCsPin, PinMode.Output);
             GpioController?.SetPinMode(GpioBusyPin, PinMode.Input);
-
-            GpioController?.Write(GpioSpiCsPin, PinValue.High);
 
             SpiDevice = spiDevice;
         }
@@ -162,7 +149,6 @@ namespace Waveshare.Common
         {
             if (disposing)
             {
-                GpioController?.Write(GpioSpiCsPin, PinValue.Low);
                 GpioController?.Write(GpioSpiDcPin, PinValue.Low);
                 GpioController?.Write(GpioResetPin, PinValue.Low);
 
@@ -255,7 +241,7 @@ namespace Waveshare.Common
         /// <returns></returns>
         private static SpiDevice CreateSpiDevice()
         {
-            SpiConnectionSettings spiConnectionSettings = new SpiConnectionSettings(0, 0);
+            SpiConnectionSettings spiConnectionSettings = new(0, GpioSpiCsPin);
             return SpiDevice.Create(spiConnectionSettings);
         }
 

@@ -49,11 +49,6 @@ namespace Waveshare.Interfaces.Internal
         PinValue SpiDcPin { get; set; }
 
         /// <summary>
-        /// GPIO SPI CS Pin
-        /// </summary>
-        PinValue SpiCsPin { get; set; }
-
-        /// <summary>
         /// GPIO Busy Pin
         /// </summary>
         PinValue BusyPin { get; set; }

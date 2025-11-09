@@ -326,6 +326,38 @@ namespace Waveshare.Common
             DisplayIsSleeping = false;
         }
 
+        #endregion Public Methods
+
+        //########################################################################################
+
+        #region Protected Methods
+
+        /// <summary>
+        /// Device specific Initialise
+        /// </summary>
+        protected abstract void DeviceInitialize();
+
+        /// <summary>
+        /// Turn the Display On
+        /// </summary>
+        protected abstract void TurnOnDisplay();
+
+        /// <summary>
+        /// Convert a Color to a Byte
+        /// </summary>
+        /// <param name="rgb"></param>
+        /// <returns></returns>
+        protected abstract byte ColorToByte(ByteColor rgb);
+
+        /// <summary>
+        /// Get the DisplayWriter
+        /// </summary>
+        /// <returns></returns>
+        protected virtual IEPaperDisplayWriter GetDisplayWriter()
+        {
+            return new EPaperDisplayWriter(this);
+        }
+
         /// <summary>
         /// Send a Command to the Display
         /// </summary>
@@ -333,45 +365,47 @@ namespace Waveshare.Common
         public void SendCommand(byte command)
         {
             EPaperDisplayHardware.SpiDcPin = PinValue.Low;
-            EPaperDisplayHardware.SpiCsPin = PinValue.Low;
             EPaperDisplayHardware.WriteByte(command);
-            EPaperDisplayHardware.SpiCsPin = PinValue.High;
         }
 
         /// <summary>
-        /// Send one Data Byte to the Display
+        /// Send a command to the display
+        /// </summary>
+        /// <param name="commands"></param>
+        protected void SendCommands(params byte[] commands)
+        {
+            EPaperDisplayHardware.SpiDcPin = PinValue.Low;
+            EPaperDisplayHardware.Write(commands);
+        }
+
+        /// <summary>
+        /// Send data to the display
         /// </summary>
         /// <param name="data"></param>
         public void SendData(byte data)
         {
             EPaperDisplayHardware.SpiDcPin = PinValue.High;
-            EPaperDisplayHardware.SpiCsPin = PinValue.Low;
             EPaperDisplayHardware.WriteByte(data);
-            EPaperDisplayHardware.SpiCsPin = PinValue.High;
         }
 
         /// <summary>
-        /// Send a Data Array to the Display
+        /// Send data to the display
         /// </summary>
         /// <param name="data"></param>
-        public void SendData(byte[] data)
+        public void SendData(params byte[] data)
         {
             EPaperDisplayHardware.SpiDcPin = PinValue.High;
-            EPaperDisplayHardware.SpiCsPin = PinValue.Low;
             EPaperDisplayHardware.Write(data);
-            EPaperDisplayHardware.SpiCsPin = PinValue.High;
         }
 
         /// <summary>
-        /// Send a stream to the Display
+        /// Send data to the display
         /// </summary>
         /// <param name="stream"></param>
         public void SendData(MemoryStream stream)
         {
             EPaperDisplayHardware.SpiDcPin = PinValue.High;
-            EPaperDisplayHardware.SpiCsPin = PinValue.Low;
             EPaperDisplayHardware.Write(stream);
-            EPaperDisplayHardware.SpiCsPin = PinValue.High;
         }
 
         /// <summary>
@@ -426,123 +460,6 @@ namespace Waveshare.Common
             }
 
             return bestIndex;
-        }
-
-        #endregion Public Methods
-
-        //########################################################################################
-
-        #region Protected Methods
-
-        /// <summary>
-        /// Gets the Euclidean distance between two colors
-        /// </summary>
-        /// <param name="color1">First color to compare</param>
-        /// <param name="color2">Second color to compare</param>
-        /// <returns>Returns the distance between two colors</returns>
-        protected double GetColorDistance(ByteColor color1, ByteColor color2)
-        {
-            if (IsPalletMonochrome)
-            {
-                return (color1.R - color2.R) * (color1.R - color2.R);
-            }
-
-            (double y1, double u1, double v1) = GetYuv(color1);
-            (double y2, double u2, double v2) = GetYuv(color2);
-            double diffY = y1 - y2;
-            double diffU = u1 - u2;
-            double diffV = v1 - v2;
-
-            return diffY * diffY + diffU * diffU + diffV * diffV;
-        }
-
-        /// <summary>
-        /// Adjust RGB values on a color. Clamping the values between 0 and 255.
-        /// </summary>
-        /// <param name="color">Color to adjust</param>
-        /// <param name="valueR">Red value to add</param>
-        /// <param name="valueG">Green value to add</param>
-        /// <param name="valueB">Blue value to add</param>
-        protected static void AdjustRgb(ref ByteColor color, int valueR, int valueG, int valueB)
-        {
-            byte r = ConvertColorIntToByte(color.R + valueR);
-            byte g = ConvertColorIntToByte(color.G + valueG);
-            byte b = ConvertColorIntToByte(color.B + valueB);
-
-            color.SetBGR(b, g, r);
-        }
-
-        /// <summary>
-        /// Floyd-Steinberg Dithering
-        /// </summary>
-        /// <param name="data"></param>
-        /// <param name="previousLine"></param>
-        /// <param name="currentLine"></param>
-        /// <param name="isLastLine"></param>
-        protected void DitherAndWrite(ByteColor[,] data, int previousLine, int currentLine, bool isLastLine)
-        {
-            for (int x = 0; x < Width; x++)
-            {
-                ByteColor currentPixel = data[x, previousLine];
-                int colorNdx = GetColorIndex(currentPixel);
-                ByteColor bestColor = SupportedByteColors[colorNdx];
-
-                int errorR = currentPixel.R - bestColor.R;
-                int errorG = currentPixel.G - bestColor.G;
-                int errorB = currentPixel.B - bestColor.B;
-
-                // Add 7/16 of the color difference to the pixel on the right
-                if (x < Width - 1)
-                {
-                    AdjustRgb(ref data[x + 1, previousLine], errorR * 7 / 16, errorG * 7 / 16, errorB * 7 / 16);
-                }
-
-                if (!isLastLine)
-                {
-                    // Add 3/16 of the color difference to the pixel below and to the left
-                    if (x > 0)
-                    {
-                        AdjustRgb(ref data[x - 1, currentLine], errorR * 3 / 16, errorG * 3 / 16, errorB * 3 / 16);
-                    }
-
-                    // Add 5/16 of the color difference to the pixel directly below
-                    AdjustRgb(ref data[x, currentLine], errorR * 5 / 16, errorG * 5 / 16, errorB * 5 / 16);
-
-                    // Add 1/16 of the color difference to the pixel below and to the right
-                    if (x < Width - 1)
-                    {
-                        AdjustRgb(ref data[x + 1, currentLine], errorR / 16, errorG / 16, errorB / 16);
-                    }
-                }
-
-                DisplayWriter.Write(colorNdx);
-            }
-        }
-
-        /// <summary>
-        /// Device specific Initializer
-        /// </summary>
-        protected abstract void DeviceInitialize();
-
-        /// <summary>
-        /// Turn the Display PowerOn after a Sleep
-        /// </summary>
-        protected abstract void TurnOnDisplay();
-
-        /// <summary>
-        /// Convert a pixel to a DataByte
-        /// </summary>
-        /// <param name="rgb">color byte</param>
-        /// <returns>Pixel converted to specific byte value for the hardware</returns>
-        protected abstract byte ColorToByte(ByteColor rgb);
-
-        /// <summary>
-        /// Generate a display writer for this device
-        /// </summary>
-        /// <returns>Returns a display writer</returns>
-        protected virtual IEPaperDisplayWriter GetDisplayWriter()
-        {
-            return new EPaperDisplayWriter(this);
         }
 
         #endregion Protected Methods
@@ -709,6 +626,92 @@ namespace Waveshare.Common
         #region Private Methods
 
         /// <summary>
+        /// Dither and Write a Line to the Display
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="line1"></param>
+        /// <param name="line2"></param>
+        /// <param name="lastLine"></param>
+        private void DitherAndWrite(ByteColor[,] data, int line1, int line2, bool lastLine)
+        {
+            bool odd = true;
+            for (int x = 0; x < Width; x++)
+            {
+                ByteColor oldPixel = data[x, line1];
+                int colorIndex = GetColorIndex(oldPixel);
+                ByteColor newPixel = SupportedByteColors[colorIndex];
+
+                DisplayWriter.Write(colorIndex);
+
+                int errorR = oldPixel.R - newPixel.R;
+                int errorG = oldPixel.G - newPixel.G;
+                int errorB = oldPixel.B - newPixel.B;
+
+                if (lastLine)
+                {
+                    continue;
+                }
+
+                if (odd)
+                {
+                    if (x < Width - 1)
+                    {
+                        data[x + 1, line1].R = ConvertColorIntToByte(data[x + 1, line1].R + errorR * 7 / 16);
+                        data[x + 1, line1].G = ConvertColorIntToByte(data[x + 1, line1].G + errorG * 7 / 16);
+                        data[x + 1, line1].B = ConvertColorIntToByte(data[x + 1, line1].B + errorB * 7 / 16);
+                    }
+
+                    if (x > 0)
+                    {
+                        data[x - 1, line2].R = ConvertColorIntToByte(data[x - 1, line2].R + errorR * 3 / 16);
+                        data[x - 1, line2].G = ConvertColorIntToByte(data[x - 1, line2].G + errorG * 3 / 16);
+                        data[x - 1, line2].B = ConvertColorIntToByte(data[x - 1, line2].B + errorB * 3 / 16);
+                    }
+
+                    data[x, line2].R = ConvertColorIntToByte(data[x, line2].R + errorR * 5 / 16);
+                    data[x, line2].G = ConvertColorIntToByte(data[x, line2].G + errorG * 5 / 16);
+                    data[x, line2].B = ConvertColorIntToByte(data[x, line2].B + errorB * 5 / 16);
+
+                    if (x < Width - 1)
+                    {
+                        data[x + 1, line2].R = ConvertColorIntToByte(data[x + 1, line2].R + errorR * 1 / 16);
+                        data[x + 1, line2].G = ConvertColorIntToByte(data[x + 1, line2].G + errorG * 1 / 16);
+                        data[x + 1, line2].B = ConvertColorIntToByte(data[x + 1, line2].B + errorB * 1 / 16);
+                    }
+                }
+                else
+                {
+                    if (x > 0)
+                    {
+                        data[x - 1, line1].R = ConvertColorIntToByte(data[x - 1, line1].R + errorR * 7 / 16);
+                        data[x - 1, line1].G = ConvertColorIntToByte(data[x - 1, line1].G + errorG * 7 / 16);
+                        data[x - 1, line1].B = ConvertColorIntToByte(data[x - 1, line1].B + errorB * 7 / 16);
+                    }
+
+                    if (x < Width - 1)
+                    {
+                        data[x + 1, line2].R = ConvertColorIntToByte(data[x + 1, line2].R + errorR * 3 / 16);
+                        data[x + 1, line2].G = ConvertColorIntToByte(data[x + 1, line2].G + errorG * 3 / 16);
+                        data[x + 1, line2].B = ConvertColorIntToByte(data[x + 1, line2].B + errorB * 3 / 16);
+                    }
+
+                    data[x, line2].R = ConvertColorIntToByte(data[x, line2].R + errorR * 5 / 16);
+                    data[x, line2].G = ConvertColorIntToByte(data[x, line2].G + errorG * 5 / 16);
+                    data[x, line2].B = ConvertColorIntToByte(data[x, line2].B + errorB * 5 / 16);
+
+                    if (x > 0)
+                    {
+                        data[x - 1, line2].R = ConvertColorIntToByte(data[x - 1, line2].R + errorR * 1 / 16);
+                        data[x - 1, line2].G = ConvertColorIntToByte(data[x - 1, line2].G + errorG * 1 / 16);
+                        data[x - 1, line2].B = ConvertColorIntToByte(data[x - 1, line2].B + errorB * 1 / 16);
+                    }
+                }
+
+                odd = !odd;
+            }
+        }
+
+        /// <summary>
         /// Shut down the device
         /// </summary>
         private void DeviceShutdown()
@@ -738,6 +741,20 @@ namespace Waveshare.Common
             }
 
             return MergePixelDataInByte(deviceBytesPerPixel);
+        }
+
+        /// <summary>
+        /// Get the color distance between two colors
+        /// </summary>
+        /// <param name="color1"></param>
+        /// <param name="color2"></param>
+        /// <returns></returns>
+        private static double GetColorDistance(ByteColor color1, ByteColor color2)
+        {
+            (double Y, double U, double V) yuv1 = GetYuv(color1);
+            (double Y, double U, double V) yuv2 = GetYuv(color2);
+
+            return Math.Abs(yuv1.Y - yuv2.Y) + Math.Abs(yuv1.U - yuv2.U) + Math.Abs(yuv1.V - yuv2.V);
         }
 
         /// <summary>

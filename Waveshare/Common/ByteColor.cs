@@ -44,17 +44,17 @@ namespace Waveshare.Common
         /// <summary>
         /// Red
         /// </summary>
-        public byte R { get; private set; }
+        public byte R { get; set; }
 
         /// <summary>
         /// Green
         /// </summary>
-        public byte G { get; private set; }
+        public byte G { get; set; }
 
         /// <summary>
         /// Blue
         /// </summary>
-        public byte B { get; private set; }
+        public byte B { get; set; }
 
         /// <summary>
         /// Check if the Color is Monochrom

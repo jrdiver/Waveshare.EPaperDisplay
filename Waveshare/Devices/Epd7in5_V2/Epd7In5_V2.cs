@@ -63,12 +63,12 @@ namespace Waveshare.Devices.Epd7in5_V2
         /// <summary>
         /// Supported Colors of the E-Paper Device
         /// </summary>
-        public override ByteColor[] SupportedByteColors { get; } = { ByteColors.White, ByteColors.Black };
+        public override ByteColor[] SupportedByteColors { get; } = [ByteColors.White, ByteColors.Black];
 
         /// <summary>
         /// Color Bytes of the E-Paper Device corresponding to the supported colors
         /// </summary>
-        public override byte[] DeviceByteColors { get; } = { Epd7In5_V2Colors.White, Epd7In5_V2Colors.Black };
+        public override byte[] DeviceByteColors { get; } = [Epd7In5_V2Colors.White, Epd7In5_V2Colors.Black];
 
         /// <summary>
         /// Get Status Command
