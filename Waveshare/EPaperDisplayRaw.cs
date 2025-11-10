@@ -23,78 +23,44 @@
 // --------------------------------------------------------------------------------------------------------------------
 #endregion Copyright
 
-#region Usings
-
-using System;
-using Waveshare.Common;
 using Waveshare.Devices;
 using Waveshare.Devices.Epd5in65F;
 using Waveshare.Devices.Epd7in5_V2;
 using Waveshare.Devices.Epd7in5b_V2;
 using Waveshare.Devices.Epd7in5bc;
-using Waveshare.Interfaces.Internal;
 
-#endregion Usings
+namespace Waveshare;
 
-namespace Waveshare
+/// <summary> E-Paper Display Factory </summary>
+public static class EPaperDisplayRaw
 {
-    /// <summary>
-    /// E-Paper Display Factory
-    /// </summary>
-    public static class EPaperDisplayRaw
+    #region Properties
+
+    /// <summary> E-Paper Hardware Interface for GPIO and SPI Bus </summary>
+    internal static Lazy<IEPaperDisplayHardware> EPaperDisplayHardware { get; set; } = new(() => new EPaperDisplayHardware());
+
+    #endregion Properties
+
+    #region Private Methods
+
+    /// <summary> Create an instance of an internal E-Paper Display </summary>
+    /// <param name="displayType"></param>
+    /// <returns></returns>
+    internal static IEPaperDisplayInternal CreateEPaperDisplay(EPaperDisplayType displayType)
     {
-
-        //########################################################################################
-
-        #region Properties
-
-        /// <summary>
-        /// E-Paper Hardware Interface for GPIO and SPI Bus
-        /// </summary>
-        internal static Lazy<IEPaperDisplayHardware> EPaperDisplayHardware { get; set; } = new Lazy<IEPaperDisplayHardware>(() => new EPaperDisplayHardware());
-
-        #endregion Properties
-
-        //########################################################################################
-
-        #region Private Methods
-
-        /// <summary>
-        /// Create a instance of a internal E-Paper Display
-        /// </summary>
-        /// <param name="displayType"></param>
-        /// <returns></returns>
-        internal static IEPaperDisplayInternal CreateEPaperDisplay(EPaperDisplayType displayType)
+        IEPaperDisplayInternal display = displayType switch
         {
-            IEPaperDisplayInternal display;
+            EPaperDisplayType.WaveShare7In5Bc => new Epd7In5Bc(),
+            EPaperDisplayType.WaveShare7In5_V2 => new Epd7In5_V2(),
+            EPaperDisplayType.WaveShare7In5b_V2 => new Epd7In5b_V2(),
+            EPaperDisplayType.WaveShare5In65f => new Epd5in65f(),
+            _ => null
+        };
 
-            switch (displayType)
-            {
-                case EPaperDisplayType.WaveShare7In5Bc:
-                    display = new Epd7In5Bc();
-                    break;
-                case EPaperDisplayType.WaveShare7In5_V2:
-                    display = new Epd7In5_V2();
-                    break;
-                case EPaperDisplayType.WaveShare7In5b_V2:
-                    display = new Epd7In5b_V2();
-                    break;
-                case EPaperDisplayType.WaveShare5In65f:
-                    display = new Epd5in65f();
-                    break;
-                default:
-                    display = null;
-                    break;
-            }
+        display?.Initialize(EPaperDisplayHardware.Value);
 
-            display?.Initialize(EPaperDisplayHardware.Value);
-
-            return display;
-        }
-
-        #endregion Private Methods
-
-        //########################################################################################
-
+        return display;
     }
+
+    #endregion Private Methods
 }

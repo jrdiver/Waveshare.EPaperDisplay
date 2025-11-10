@@ -23,42 +23,23 @@
 // --------------------------------------------------------------------------------------------------------------------
 #endregion Copyright
 
-#region Usings
+namespace Waveshare.Interfaces.Internal;
 
-using System;
-
-#endregion Usings
-
-namespace Waveshare.Interfaces.Internal
+/// <summary> Interface for the RAW Image that should be displayed </summary>
+internal interface IRawImage : IDisposable
 {
-    /// <summary>
-    /// Interface for the RAW Image that should be displayed
-    /// </summary>
-    internal interface IRawImage : IDisposable
-    {
-        /// <summary>
-        /// Width of the Image or Device Width
-        /// </summary>
-        int Width { get; }
+    /// <summary> Width of the Image or Device Width </summary>
+    int Width { get; }
 
-        /// <summary>
-        /// Height of the Image or Device Height
-        /// </summary>
-        int Height { get; }
+    /// <summary> Height of the Image or Device Height </summary>
+    int Height { get; }
 
-        /// <summary>
-        /// Length of a ScanLine in Bytes
-        /// </summary>
-        int Stride { get; }
+    /// <summary> Length of a ScanLine in Bytes </summary>
+    int Stride { get; }
 
-        /// <summary>
-        /// Used Bytes per Pixel
-        /// </summary>
-        int BytesPerPixel { get; }
+    /// <summary> Used Bytes per Pixel </summary>
+    int BytesPerPixel { get; }
 
-        /// <summary>
-        /// IntPointer to the Byte Array of the Image
-        /// </summary>
-        IntPtr ScanLine { get; }
-    }
+    /// <summary> IntPointer to the Byte Array of the Image </summary>
+    IntPtr ScanLine { get; }
 }

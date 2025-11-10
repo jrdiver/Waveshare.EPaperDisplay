@@ -25,7 +25,8 @@
 		<AssemblyVersion>1.0.5.0</AssemblyVersion>
 		<FileVersion>1.0.5.0</FileVersion>
 		<LangVersion>12</LangVersion>
-	</PropertyGroup>
+	  <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
 
 	<ItemGroup>
 		<None Include="Properties\PublishProfiles\FolderProfile.pubxml.user" />

@@ -42,9 +42,9 @@ namespace Waveshare.Test.Common
         [Test]
         public void DisposeTest()
         {
-            using var result = CreateEPaperDisplayHardware();
+            using EPaperDisplayHardware result = CreateEPaperDisplayHardware();
 
-            Assert.NotNull(result, "Object should not be null");
+            Assert.That(result, Is.Not.Null, "Object should not be null");
         }
 
         [Test]
@@ -74,23 +74,23 @@ namespace Waveshare.Test.Common
         [Test]
         public void WriteDataTest()
         {
-            using var result = CreateEPaperDisplayHardware();
+            using EPaperDisplayHardware result = CreateEPaperDisplayHardware();
 
             for (byte b = 0; b < byte.MaxValue; b++)
             {
                 result.WriteByte(b);
-                Assert.AreEqual(b, s_DataByte, $"WriteByte failed with {b}");
+                Assert.That(s_DataByte, Is.EqualTo(b), $"WriteByte failed with {b}");
             }
         }
 
         private static EPaperDisplayHardware CreateEPaperDisplayHardware()
         {
-            var spiMock = new Mock<SpiDevice>();
+            Mock<SpiDevice> spiMock = new Mock<SpiDevice>();
             spiMock.Setup(s => s.WriteByte(It.IsAny<byte>())).Callback((byte b) => s_DataByte = b);
 
             //GpiController can not be Mocked, currently not testable :-(
 
-            var result = new EPaperDisplayHardware(spiMock.Object, null);
+            EPaperDisplayHardware result = new EPaperDisplayHardware(spiMock.Object, null);
             return result;
         }
     }

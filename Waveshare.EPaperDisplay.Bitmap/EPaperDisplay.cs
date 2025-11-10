@@ -28,6 +28,7 @@
 using Waveshare.Devices;
 using Waveshare.Image;
 using Waveshare.Interfaces;
+using Waveshare.Interfaces.Internal;
 
 #endregion Usings
 
@@ -50,7 +51,7 @@ namespace Waveshare
         /// <returns></returns>
         public static IEPaperDisplayBitmap? Create(EPaperDisplayType displayType)
         {
-            var ePaperDisplay = EPaperDisplayRaw.CreateEPaperDisplay(displayType);
+            IEPaperDisplayInternal? ePaperDisplay = EPaperDisplayRaw.CreateEPaperDisplay(displayType);
             return ePaperDisplay != null ? new BitmapLoader(ePaperDisplay) : null;
         }
 

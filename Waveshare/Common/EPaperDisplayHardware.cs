@@ -23,231 +23,163 @@
 // --------------------------------------------------------------------------------------------------------------------
 #endregion Copyright
 
-#region Usings
-
-using System;
 using System.Device.Gpio;
 using System.Device.Spi;
-using System.IO;
-using Waveshare.Interfaces.Internal;
 
-#endregion Usings
+namespace Waveshare.Common;
 
-namespace Waveshare.Common
+/// <summary> E-Paper Display Hardware on the SPI Bus </summary>
+internal sealed class EPaperDisplayHardware : IEPaperDisplayHardware
 {
-    /// <summary>
-    /// E-Paper Display Hardware on the SPI Bus
-    /// </summary>
-    internal sealed class EPaperDisplayHardware : IEPaperDisplayHardware
+    #region Constants
+
+    /// <summary> GPIO Reset Pin Number </summary>
+    private const int GpioResetPin = 17;
+
+    /// <summary> GPIO SPI DC Pin Number </summary>
+    private const int GpioSpiDcPin = 25;
+
+    /// <summary> GPIO SPI CS Pin Number </summary>
+    private const int GpioSpiCsPin = 0;
+
+    /// <summary> GPIO Busy Pin Number </summary>
+    private const int GpioBusyPin = 24;
+
+    #endregion Constants
+
+    #region Properties
+
+    /// <summary> SPI Bus Device </summary>
+    internal SpiDevice SpiDevice { get; private set; }
+
+    /// <summary> GPIO Controller Device </summary>
+    internal GpioController GpioController { get; private set; }
+
+    /// <summary> GPIO Reset Pin </summary>
+    public PinValue ResetPin
+    {
+        get => GpioController.Read(GpioResetPin);
+        set => GpioController.Write(GpioResetPin, value);
+    }
+
+    /// <summary> GPIO SPI DC Pin </summary>
+    public PinValue SpiDcPin
+    {
+        get => GpioController.Read(GpioSpiDcPin);
+        set => GpioController.Write(GpioSpiDcPin, value);
+    }
+
+    /// <summary> GPIO Busy Pin </summary>
+    public PinValue BusyPin
+    {
+        get => GpioController.Read(GpioBusyPin);
+        set => GpioController.Write(GpioBusyPin, value);
+    }
+
+    #endregion Properties
+
+    #region Constructor / Dispose / Finalizer
+
+    /// <summary> Default Constructor </summary>
+    public EPaperDisplayHardware() : this(CreateSpiDevice(), CreateGpioController())
     {
 
-        //########################################################################################
+    }
 
-        #region Constants
+    /// <summary> Internal Constructor with Hardware Interfaces (SPI and GPIO) </summary>
+    /// <param name="spiDevice"></param>
+    /// <param name="gpioController"></param>
+    internal EPaperDisplayHardware(SpiDevice spiDevice, GpioController gpioController)
+    {
+        GpioController = gpioController;
 
-        /// <summary>
-        /// GPIO Reset Pin Number
-        /// </summary>
-        private const int GpioResetPin = 17;
+        GpioController?.OpenPin(GpioResetPin);
+        GpioController?.OpenPin(GpioSpiDcPin);
+        GpioController?.OpenPin(GpioBusyPin);
 
-        /// <summary>
-        /// GPIO SPI DC Pin Number
-        /// </summary>
-        private const int GpioSpiDcPin = 25;
+        GpioController?.SetPinMode(GpioResetPin, PinMode.Output);
+        GpioController?.SetPinMode(GpioSpiDcPin, PinMode.Output);
+        GpioController?.SetPinMode(GpioBusyPin, PinMode.Input);
 
-        /// <summary>
-        /// GPIO SPI CS Pin Number
-        /// </summary>
-        private const int GpioSpiCsPin = 0;
+        SpiDevice = spiDevice;
+    }
 
-        /// <summary>
-        /// GPIO Busy Pin Number
-        /// </summary>
-        private const int GpioBusyPin = 24;
+    /// <summary> Dispose the SPI and GPIO Devices </summary>
+    private void Dispose(bool disposing)
+    {
+        if (!disposing) return;
 
-        #endregion Constants
+        GpioController?.Write(GpioSpiDcPin, PinValue.Low);
+        GpioController?.Write(GpioResetPin, PinValue.Low);
 
-        //########################################################################################
+        GpioController?.Dispose();
+        GpioController = null;
 
-        #region Properties
+        SpiDevice?.Dispose();
+        SpiDevice = null;
+    }
 
-        /// <summary>
-        /// SPI Bus Device
-        /// </summary>
-        internal SpiDevice SpiDevice { get; private set; }
+    /// <summary> Dispose </summary>
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
 
-        /// <summary>
-        /// GPIO Controller Device
-        /// </summary>
-        internal GpioController GpioController { get; private set; }
+    /// <summary> Finalizer </summary>
+    ~EPaperDisplayHardware() => Dispose(false);
 
-        /// <summary>
-        /// GPIO Reset Pin
-        /// </summary>
-        public PinValue ResetPin
-        {
-            get => GpioController.Read(GpioResetPin);
-            set => GpioController.Write(GpioResetPin, value);
-        }
+    #endregion Constructor / Dispose / Finalizer
 
-        /// <summary>
-        /// GPIO SPI DC Pin
-        /// </summary>
-        public PinValue SpiDcPin
-        {
-            get => GpioController.Read(GpioSpiDcPin);
-            set => GpioController.Write(GpioSpiDcPin, value);
-        }
+    #region Public Methods
 
-        /// <summary>
-        /// GPIO Busy Pin
-        /// </summary>
-        public PinValue BusyPin
-        {
-            get => GpioController.Read(GpioBusyPin);
-            set => GpioController.Write(GpioBusyPin, value);
-        }
-
-        #endregion Properties
-
-        //########################################################################################
-
-        #region Constructor / Dispose / Finalizer
-
-        /// <summary>
-        /// Default Constructor
-        /// </summary>
-        public EPaperDisplayHardware() : this(CreateSpiDevice(), CreateGpioController())
-        {
-
-        }
-
-        /// <summary>
-        /// Internal Constructor with Hardware Interfaces (SPI and GPIO)
-        /// </summary>
-        /// <param name="spiDevice"></param>
-        /// <param name="gpioController"></param>
-        internal EPaperDisplayHardware(SpiDevice spiDevice, GpioController gpioController)
-        {
-            GpioController = gpioController;
-
-            GpioController?.OpenPin(GpioResetPin);
-            GpioController?.OpenPin(GpioSpiDcPin);
-            GpioController?.OpenPin(GpioBusyPin);
-
-            GpioController?.SetPinMode(GpioResetPin, PinMode.Output);
-            GpioController?.SetPinMode(GpioSpiDcPin, PinMode.Output);
-            GpioController?.SetPinMode(GpioBusyPin, PinMode.Input);
-
-            SpiDevice = spiDevice;
-        }
-
-        /// <summary>
-        /// Dispose the SPI and GPIO Devices
-        /// </summary>
-        private void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                GpioController?.Write(GpioSpiDcPin, PinValue.Low);
-                GpioController?.Write(GpioResetPin, PinValue.Low);
-
-                GpioController?.Dispose();
-                GpioController = null;
-
-                SpiDevice?.Dispose();
-                SpiDevice = null;
-            }
-        }
-
-        /// <summary>
-        /// Dispose
-        /// </summary>
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        /// <summary>
-        /// Finalizer
-        /// </summary>
-        ~EPaperDisplayHardware() => Dispose(false);
-
-        #endregion Constructor / Dispose / Finalizer
-
-        //########################################################################################
-
-        #region Public Methods
-
-        /// <summary>
-        /// Write stream to the SPI device
-        /// </summary>
-        /// <param name="stream">The stream that contains the data to be written to the SPI device</param>
-        public void Write(MemoryStream stream)
-        {
-            byte[] buffer = new byte[Math.Min(4096, stream.Length)];
-            int bytesRead = stream.Read(buffer, 0, buffer.Length);
-            while (bytesRead == buffer.Length)
-            {
-                SpiDevice?.Write(buffer);
-                bytesRead = stream.Read(buffer, 0, buffer.Length);
-            }
-
-            if (bytesRead > 0 && bytesRead < buffer.Length)
-            {
-                Array.Resize(ref buffer, bytesRead);
-                SpiDevice?.Write(buffer);
-            }
-        }
-
-        /// <summary>
-        /// Write data to the SPI device
-        /// </summary>
-        /// <param name="buffer">The buffer that contains the data to be written to the SPI device</param>
-        public void Write(byte[] buffer)
+    /// <summary> Write stream to the SPI device </summary>
+    /// <param name="stream">The stream that contains the data to be written to the SPI device</param>
+    public void Write(MemoryStream stream)
+    {
+        byte[] buffer = new byte[Math.Min(4096, stream.Length)];
+        int bytesRead = stream.Read(buffer, 0, buffer.Length);
+        while (bytesRead == buffer.Length)
         {
             SpiDevice?.Write(buffer);
+            bytesRead = stream.Read(buffer, 0, buffer.Length);
         }
 
-        /// <summary>
-        /// Write a byte to the SPI device
-        /// </summary>
-        /// <param name="value">The byte to be written to the SPI device</param>
-        public void WriteByte(byte value)
-        {
-            SpiDevice?.WriteByte(value);
-        }
+        if (bytesRead <= 0 || bytesRead >= buffer.Length) return;
 
-        #endregion Public Methods
-
-        //########################################################################################
-
-        #region Private Methods
-
-        /// <summary>
-        /// Create the GPIO Controller
-        /// </summary>
-        /// <returns></returns>
-        private static GpioController CreateGpioController()
-        {
-            GpioController gpioController = new GpioController();
-            return gpioController;
-        }
-
-        /// <summary>
-        /// Create the SPI Device
-        /// </summary>
-        /// <returns></returns>
-        private static SpiDevice CreateSpiDevice()
-        {
-            SpiConnectionSettings spiConnectionSettings = new(0, GpioSpiCsPin);
-            return SpiDevice.Create(spiConnectionSettings);
-        }
-
-        #endregion Private Methods
-
-        //########################################################################################
-
+        Array.Resize(ref buffer, bytesRead);
+        SpiDevice?.Write(buffer);
     }
+
+    /// <summary> Write data to the SPI device </summary>
+    /// <param name="buffer">The buffer that contains the data to be written to the SPI device</param>
+    public void Write(byte[] buffer) => SpiDevice?.Write(buffer);
+
+    /// <summary> Write a byte to the SPI device </summary>
+    /// <param name="value">The byte to be written to the SPI device</param>
+    public void WriteByte(byte value) => SpiDevice?.WriteByte(value);
+
+    #endregion Public Methods
+
+    //########################################################################################
+
+    #region Private Methods
+
+    /// <summary>Create the GPIO Controller </summary>
+    /// <returns></returns>
+    private static GpioController CreateGpioController()
+    {
+        GpioController gpioController = new();
+        return gpioController;
+    }
+
+    /// <summary> Create the SPI Device </summary>
+    /// <returns></returns>
+    private static SpiDevice CreateSpiDevice()
+    {
+        SpiConnectionSettings spiConnectionSettings = new(0, GpioSpiCsPin);
+        return SpiDevice.Create(spiConnectionSettings);
+    }
+
+    #endregion Private Methods
 }

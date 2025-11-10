@@ -23,44 +23,36 @@
 // --------------------------------------------------------------------------------------------------------------------
 #endregion Copyright
 
-namespace Waveshare.Devices
+// ReSharper disable InconsistentNaming
+namespace Waveshare.Devices;
+
+/// <summary> Type of the E-Paper Display </summary>
+public enum EPaperDisplayType
 {
+    /// <summary> Default value </summary>
+    None,
     /// <summary>
-    /// Type of the E-Paper Display
+    /// Type: Waveshare 7.5inch e-Paper (B) <br/>
+    /// Color: Black, White and Red <br/>
+    /// Display Resolution: 640*384
     /// </summary>
-    public enum EPaperDisplayType
-    {
-        /// <summary>
-        /// Default value
-        /// </summary>
-        // ReSharper disable once UnusedMember.Global
-        None,
-        /// <summary>
-        /// Type: Waveshare 7.5inch e-Paper (B)
-        /// Color: Black, White and Red
-        /// Display Resolution: 640*384
-        /// </summary>
-        WaveShare7In5Bc,
-        /// <summary>
-        /// Type: Waveshare 7.5inch e-Paper V2
-        /// Color: Black and White
-        /// Display Resolution: 800*480
-        /// </summary>
-        // ReSharper disable once InconsistentNaming
-        WaveShare7In5_V2,
-        /// <summary>
-        /// Type: Waveshare 7.5inch e-Paper V2
-        /// Color: Black, White and Red
-        /// Display Resolution: 800*480
-        /// </summary>
-        // ReSharper disable once InconsistentNaming
-        WaveShare7In5b_V2,
-        /// <summary>
-        /// Type: Waveshare 5.65inch e-Paper (F)
-        /// Color: Black, White, Green, Blue, Red, Yellow and Orange
-        /// Display Resolution: 600*448 
-        /// </summary>
-        // ReSharper disable once InconsistentNaming
-        WaveShare5In65f
-    }
+    WaveShare7In5Bc,
+    /// <summary>
+    /// Type: Waveshare 7.5inch e-Paper V2 <br/>
+    /// Color: Black and White <br/>
+    /// Display Resolution: 800*480
+    /// </summary>
+    WaveShare7In5_V2,
+    /// <summary>
+    /// Type: Waveshare 7.5inch e-Paper V2 <br/>
+    /// Color: Black, White and Red <br/>
+    /// Display Resolution: 800*480
+    /// </summary>
+    WaveShare7In5b_V2,
+    /// <summary>
+    /// Type: Waveshare 5.65inch e-Paper (F) <br/>
+    /// Color: Black, White, Green, Blue, Red, Yellow and Orange <br/>
+    /// Display Resolution: 600*448 
+    /// </summary>
+    WaveShare5In65f
 }

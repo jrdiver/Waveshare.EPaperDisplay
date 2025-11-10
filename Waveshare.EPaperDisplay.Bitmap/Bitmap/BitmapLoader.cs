@@ -65,8 +65,8 @@ namespace Waveshare.Image
         /// <returns></returns>
         protected override IRawImage LoadImage(System.Drawing.Bitmap image)
         {
-            var maxWidth = Math.Min(Width, image.Width);
-            var maxHeight = Math.Min(Height, image.Height);
+            int maxWidth = Math.Min(Width, image.Width);
+            int maxHeight = Math.Min(Height, image.Height);
 
             return new BitmapRawImage(image, maxWidth, maxHeight);
         }

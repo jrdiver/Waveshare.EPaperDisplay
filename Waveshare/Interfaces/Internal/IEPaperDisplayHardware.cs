@@ -23,52 +23,31 @@
 // --------------------------------------------------------------------------------------------------------------------
 #endregion Copyright
 
-#region Usings
-
-using System;
 using System.Device.Gpio;
-using System.IO;
 
-#endregion Usings
+namespace Waveshare.Interfaces.Internal;
 
-namespace Waveshare.Interfaces.Internal
+/// <summary> E-Paper Hardware Interface for GPIO and SPI Bus </summary>
+internal interface IEPaperDisplayHardware : IDisposable
 {
-    /// <summary>
-    /// E-Paper Hardware Interface for GPIO and SPI Bus
-    /// </summary>
-    internal interface IEPaperDisplayHardware : IDisposable
-    {
-        /// <summary>
-        /// GPIO Reset Pin
-        /// </summary>
-        PinValue ResetPin { get; set; }
+    /// <summary> GPIO Reset Pin </summary>
+    PinValue ResetPin { get; set; }
 
-        /// <summary>
-        /// GPIO SPI DC Pin
-        /// </summary>
-        PinValue SpiDcPin { get; set; }
+    /// <summary> GPIO SPI DC Pin </summary>
+    PinValue SpiDcPin { get; set; }
 
-        /// <summary>
-        /// GPIO Busy Pin
-        /// </summary>
-        PinValue BusyPin { get; set; }
+    /// <summary> GPIO Busy Pin </summary>
+    PinValue BusyPin { get; set; }
 
-        /// <summary>
-        /// Write data to the SPI device
-        /// </summary>
-        /// <param name="stream">The stream that contains the data to be written to the SPI device</param>
-        void Write(MemoryStream stream);
+    /// <summary> Write data to the SPI device </summary>
+    /// <param name="stream">The stream that contains the data to be written to the SPI device</param>
+    void Write(MemoryStream stream);
 
-        /// <summary>
-        /// Write data to the SPI device
-        /// </summary>
-        /// <param name="buffer">The buffer that contains the data to be written to the SPI device</param>
-        void Write(byte[] buffer);
+    /// <summary> Write data to the SPI device </summary>
+    /// <param name="buffer">The buffer that contains the data to be written to the SPI device</param>
+    void Write(byte[] buffer);
 
-        /// <summary>
-        /// Write a byte to the SPI device
-        /// </summary>
-        /// <param name="value">The byte to be written to the SPI device</param>
-        void WriteByte(byte value);
-    }
+    /// <summary> Write a byte to the SPI device </summary>
+    /// <param name="value">The byte to be written to the SPI device</param>
+    void WriteByte(byte value);
 }

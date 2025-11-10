@@ -23,51 +23,32 @@
 // --------------------------------------------------------------------------------------------------------------------
 #endregion Copyright
 
-namespace Waveshare.Common
+namespace Waveshare.Common;
+
+/// <summary> Colors as ByteArrays </summary>
+internal class ByteColors
 {
-    /// <summary>
-    /// Colors as ByteArrays
-    /// </summary>
-    internal class ByteColors
-    {
-        /// <summary>
-        /// Color White as ByteColor
-        /// </summary>
-        public static readonly ByteColor White = new ByteColor(255, 255, 255);
+    /// <summary> Color White as ByteColor </summary>
+    public static readonly ByteColor White = new(255, 255, 255);
 
-        /// <summary>
-        /// Color Gray as ByteColor
-        /// </summary>
-        public static readonly ByteColor Gray = new ByteColor(128, 128, 128);
+    /// <summary> Color Gray as ByteColor </summary>
+    public static readonly ByteColor Gray = new(128, 128, 128);
 
-        /// <summary>
-        /// Color Black as ByteColor
-        /// </summary>
-        public static readonly ByteColor Black = new ByteColor(0, 0, 0);
+    /// <summary> Color Black as ByteColor </summary>
+    public static readonly ByteColor Black = new(0, 0, 0);
 
-        /// <summary>
-        /// Color Red as ByteColor
-        /// </summary>
-        public static readonly ByteColor Red = new ByteColor(255, 0, 0);
+    /// <summary> Color Red as ByteColor </summary>
+    public static readonly ByteColor Red = new(255, 0, 0);
 
-        /// <summary>
-        /// Color Green as ByteColor
-        /// </summary>
-        public static readonly ByteColor Green = new ByteColor(0, 255, 0);
+    /// <summary> Color Green as ByteColor </summary>
+    public static readonly ByteColor Green = new(0, 255, 0);
 
-        /// <summary>
-        /// Color Blue as ByteColor
-        /// </summary>
-        public static readonly ByteColor Blue = new ByteColor(0, 0, 255);
+    /// <summary> Color Blue as ByteColor </summary>
+    public static readonly ByteColor Blue = new(0, 0, 255);
 
-        /// <summary>
-        /// Color Yellow as ByteColor
-        /// </summary>
-        public static readonly ByteColor Yellow = new ByteColor(255, 255, 0);
+    /// <summary> Color Yellow as ByteColor </summary>
+    public static readonly ByteColor Yellow = new(255, 255, 0);
 
-        /// <summary>
-        /// Color Orange as ByteColor
-        /// </summary>
-        public static readonly ByteColor Orange = new ByteColor(255, 165, 0);
-    }
+    /// <summary> Color Orange as ByteColor </summary>
+    public static readonly ByteColor Orange = new(255, 165, 0);
 }

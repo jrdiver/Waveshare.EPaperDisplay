@@ -30,7 +30,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using SkiaSharp;
 using Waveshare.Devices;
+using Waveshare.Interfaces;
 
 #endregion Usings
 
@@ -53,12 +55,12 @@ namespace Waveshare.Example
         public static void Main(string[] args)
         {
             Console.Write("Initializing E-Paper Display...");
-            var time = Stopwatch.StartNew();
-            using var ePaperDisplay = EPaperDisplay.Create(EPaperDisplayType.WaveShare5In65f);
+            Stopwatch time = Stopwatch.StartNew();
+            using IEPaperDisplaySKBitmap ePaperDisplay = EPaperDisplay.Create(EPaperDisplayType.WaveShare5In65f);
             time.Stop();
             Console.WriteLine($" [Done {time.ElapsedMilliseconds} ms]");
 
-            using var bitmap = LoadBitmap(args, ePaperDisplay.Width, ePaperDisplay.Height);
+            using SKBitmap bitmap = LoadBitmap(args, ePaperDisplay.Width, ePaperDisplay.Height);
             if (bitmap == null)
             {
                 return;
@@ -99,7 +101,7 @@ namespace Waveshare.Example
 
             if (args == null || args.Length == 0)
             {
-                var fileName = $"like_a_sir_{width}x{height}.bmp";
+                string fileName = $"like_a_sir_{width}x{height}.bmp";
                 bitmapFilePath = Path.Combine(ExecutingAssemblyPath, fileName);
             }
             else
@@ -124,7 +126,7 @@ namespace Waveshare.Example
         private static SkiaSharp.SKBitmap LoadSKBitmapFromFile(string filePath)
         {
             SkiaSharp.SKBitmap bitmap;
-            using (var stream = File.OpenRead(filePath))
+            using (FileStream stream = File.OpenRead(filePath))
             {
                 bitmap = SkiaSharp.SKBitmap.Decode(stream);
             }
@@ -139,7 +141,7 @@ namespace Waveshare.Example
         {
             get
             {
-                var path = Assembly.GetExecutingAssembly().Location;
+                string path = Assembly.GetExecutingAssembly().Location;
                 return Path.GetDirectoryName(path);
             }
         }

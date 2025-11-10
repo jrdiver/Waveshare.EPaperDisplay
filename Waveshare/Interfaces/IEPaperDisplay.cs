@@ -23,75 +23,46 @@
 // --------------------------------------------------------------------------------------------------------------------
 #endregion Copyright
 
-#region Usings
+namespace Waveshare.Interfaces;
 
-using System;
-
-#endregion Usings
-
-namespace Waveshare.Interfaces
+/// <summary> Interface for all E-Paper Devices </summary>
+public interface IEPaperDisplay : IDisposable
 {
+    /// <summary> Pixel Width of the Display </summary>
+    int Width { get; }
+
+    /// <summary> Pixel Height of the Display </summary>
+    int Height { get; }
+
+    /// <summary> Wait until the display is ready </summary>
+    /// <returns>true if device is ready, false for timeout</returns>
+    bool WaitUntilReady();
+
+    /// <summary> Wait until the display is ready </summary>
+    /// <param name="timeout"></param>
+    /// <returns>true if device is ready, false for timeout</returns>
+    bool WaitUntilReady(int timeout);
+
+    /// <summary> Power the controller on.  Do not use with SleepMode. </summary>
+    void PowerOn();
+
+    /// <summary> Power the controller off.  Do not use with SleepMode. </summary>
+    void PowerOff();
+
+    /// <summary> Send the Display into SleepMode </summary>
+    void Sleep();
+
     /// <summary>
-    /// Interface for all E-Paper Devices
+    /// WakeUp the Display from SleepMode
     /// </summary>
-    public interface IEPaperDisplay : IDisposable
-    {
-        /// <summary>
-        /// Pixel Width of the Display
-        /// </summary>
-        int Width { get; }
+    void WakeUp();
 
-        /// <summary>
-        /// Pixel Height of the Display
-        /// </summary>
-        int Height { get; }
+    /// <summary> Clear the Display to White </summary>
+    void Clear();
 
-        /// <summary>
-        /// Wait until the display is ready
-        /// </summary>
-        /// <returns>true if device is ready, false for timeout</returns>
-        bool WaitUntilReady();
+    /// <summary> Clear the Display to Black </summary>
+    void ClearBlack();
 
-        /// <summary>
-        /// Wait until the display is ready
-        /// </summary>
-        /// <param name="timeout"></param>
-        /// <returns>true if device is ready, false for timeout</returns>
-        bool WaitUntilReady(int timeout);
-
-        /// <summary>
-        /// Power the controller on.  Do not use with SleepMode.
-        /// </summary>
-        void PowerOn();
-
-        /// <summary>
-        /// Power the controler off.  Do not use with SleepMode.
-        /// </summary>
-        void PowerOff();
-
-        /// <summary>
-        /// Send the Display into SleepMode
-        /// </summary>
-        void Sleep();
-
-        /// <summary>
-        /// WakeUp the Display from SleepMode
-        /// </summary>
-        void WakeUp();
-
-        /// <summary>
-        /// Clear the Display to White
-        /// </summary>
-        void Clear();
-
-        /// <summary>
-        /// Clear the Display to Black
-        /// </summary>
-        void ClearBlack();
-
-        /// <summary>
-        /// Reset the Display
-        /// </summary>
-        void Reset();
-    }
+    /// <summary> Reset the Display </summary>
+    void Reset();
 }

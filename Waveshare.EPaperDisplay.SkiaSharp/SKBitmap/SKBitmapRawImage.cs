@@ -23,99 +23,58 @@
 // --------------------------------------------------------------------------------------------------------------------
 #endregion Copyright
 
-#region Usings
+namespace Waveshare.Image;
 
-using System;
-using Waveshare.Interfaces.Internal;
-
-#endregion Usings
-
-namespace Waveshare.Image
+/// <summary> Wrapper for a SKBitmap into a RAW Image for the E-Paper Display </summary>
+// ReSharper disable once InconsistentNaming
+internal class SKBitmapRawImage : IRawImage
 {
-    /// <summary>
-    /// Wrapper for a SKBitmap into a RAW Image for the E-Paper Display
-    /// </summary>
-    // ReSharper disable once InconsistentNaming
-    internal class SKBitmapRawImage : IRawImage
+    #region Properties
+
+    /// <summary> IntPointer to the Byte Array of the Image </summary>
+    private IntPtr m_ScanLine;
+
+    /// <summary> The SKBitmap used for the ScanLine </summary>
+    private SkiaSharp.SKBitmap? Bitmap { get; set; }
+
+    /// <summary> Width of the Image or Device Width </summary>
+    public int Width => Bitmap?.Width ?? 0;
+
+    /// <summary> Height of the Image or Device Height </summary>
+    public int Height => Bitmap?.Height ?? 0;
+
+    /// <summary> Used Bytes per Pixel </summary>
+    public int BytesPerPixel => Bitmap?.BytesPerPixel ?? 0;
+
+    /// <summary> Length of a ScanLine in Bytes </summary>
+    public int Stride => Bitmap != null ? (Bitmap.Width * Bitmap.BytesPerPixel) : 0;
+
+    /// <summary> IntPointer to the Byte Array of the Image </summary>
+    public IntPtr ScanLine
     {
-
-        //########################################################################################
-
-        #region Properties
-
-        /// <summary>
-        /// IntPointer to the Byte Array of the Image
-        /// </summary>
-        private IntPtr m_ScanLine;
-
-        /// <summary>
-        /// The SKBitmap used for the ScanLine
-        /// </summary>
-        private SkiaSharp.SKBitmap? Bitmap { get; set; }
-
-        /// <summary>
-        /// Width of the Image or Device Width
-        /// </summary>
-        public int Width => Bitmap != null ? Bitmap.Width : 0;
-
-        /// <summary>
-        /// Height of the Image or Device Height
-        /// </summary>
-        public int Height => Bitmap != null ? Bitmap.Height : 0;
-
-        /// <summary>
-        /// Used Bytes per Pixel
-        /// </summary>
-        public int BytesPerPixel => Bitmap != null ? Bitmap.BytesPerPixel : 0;
-
-        /// <summary>
-        /// Length of a ScanLine in Bytes
-        /// </summary>
-        public int Stride => Bitmap != null ? (Bitmap.Width * Bitmap.BytesPerPixel) : 0;
-
-        /// <summary>
-        /// IntPointer to the Byte Array of the Image
-        /// </summary>
-        public IntPtr ScanLine
+        get
         {
-            get
-            {
-                if (m_ScanLine == IntPtr.Zero && Bitmap != null)
-                {
-                    m_ScanLine = Bitmap.GetPixels();
-                }
+            if (m_ScanLine == IntPtr.Zero && Bitmap != null) 
+                m_ScanLine = Bitmap.GetPixels();
 
-                return m_ScanLine;
-            }
+            return m_ScanLine;
         }
-
-        #endregion Properties
-
-        //########################################################################################
-
-        #region Constructor / Dispose / Finalizer
-
-        /// <summary>
-        /// Constructor with the SKBitmap
-        /// </summary>
-        /// <param name="bitmap"></param>
-        public SKBitmapRawImage(SkiaSharp.SKBitmap bitmap)
-        {
-            Bitmap = bitmap;
-        }
-
-        /// <summary>
-        /// Dispose
-        /// </summary>
-        public void Dispose()
-        {
-            Bitmap?.Dispose();
-            Bitmap = null;
-        }
-
-        #endregion Constructor / Dispose / Finalizer
-
-        //########################################################################################
-
     }
+
+    #endregion Properties
+
+    #region Constructor / Dispose / Finalizer
+
+    /// <summary> Constructor with the SKBitmap </summary>
+    /// <param name="bitmap"></param>
+    public SKBitmapRawImage(SkiaSharp.SKBitmap bitmap) => Bitmap = bitmap;
+
+    /// <summary> Dispose </summary>
+    public void Dispose()
+    {
+        Bitmap?.Dispose();
+        Bitmap = null;
+    }
+
+    #endregion Constructor / Dispose / Finalizer
 }

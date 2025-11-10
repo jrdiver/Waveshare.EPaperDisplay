@@ -23,56 +23,33 @@
 // --------------------------------------------------------------------------------------------------------------------
 #endregion Copyright
 
-#region Usings
+// ReSharper disable InconsistentNaming
+namespace Waveshare.Devices.Epd5in65F;
 
-#endregion Usings
-
-namespace Waveshare.Devices.Epd5in65F
+/// <summary> Byte values for the supported hardware colors </summary>
+internal class Epd5in65fColors
 {
-    /// <summary>
-    /// Byte values for the supported hardware colors
-    /// </summary>
-    // ReSharper disable once InconsistentNaming
-    internal class Epd5in65fColors
-    {
-        /// <summary>
-        /// Byte value for color black
-        /// </summary>
-        public const byte Black = 0x00;
+    /// <summary> Byte value for color black </summary>
+    public const byte Black = 0x00;
 
-        /// <summary>
-        /// Byte value for color white
-        /// </summary>
-        public const byte White = 0x01;
+    /// <summary> Byte value for color white </summary>
+    public const byte White = 0x01;
 
-        /// <summary>
-        /// Byte value for color green
-        /// </summary>
-        public const byte Green = 0x02;
+    /// <summary> Byte value for color green/ </summary>
+    public const byte Green = 0x02;
 
-        /// <summary>
-        /// Byte value for color blue
-        /// </summary>
-        public const byte Blue = 0x03;
+    /// <summary> Byte value for color blue </summary>
+    public const byte Blue = 0x03;
 
-        /// <summary>
-        /// Byte value for color red
-        /// </summary>
-        public const byte Red = 0x04;
+    /// <summary> Byte value for color red </summary>
+    public const byte Red = 0x04;
 
-        /// <summary>
-        /// Byte value for color yellow
-        /// </summary>
-        public const byte Yellow = 0x05;
+    /// <summary>Byte value for color yellow </summary>
+    public const byte Yellow = 0x05;
 
-        /// <summary>
-        /// Byte value for color orange
-        /// </summary>
-        public const byte Orange = 0x06;
+    /// <summary>Byte value for color orange</summary>
+    public const byte Orange = 0x06;
 
-        /// <summary>
-        /// Byte value for clear color
-        /// </summary>
-        public const byte Clean = 0x07;
-    }
+    /// <summary> Byte value for clear color </summary>
+    public const byte Clean = 0x07;
 }

@@ -51,13 +51,13 @@ namespace Waveshare.Test.Devices
         /// <returns></returns>
         public static SKBitmap CreateSampleBitmap(int width, int height)
         {
-            var image = new SKBitmap(new SkiaSharp.SKImageInfo(width, height, SKColorType.Bgra8888));
+            SKBitmap image = new SKBitmap(new SkiaSharp.SKImageInfo(width, height, SKColorType.Bgra8888));
 
             for (int y = 0; y < image.Height; y++)
             {
                 for (int x = 0; x < image.Width; x++)
                 {
-                    var color = SKColors.White;
+                    SKColor color = SKColors.White;
 
                     if (x % 2 == 0)
                     {

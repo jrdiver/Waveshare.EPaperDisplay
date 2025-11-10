@@ -81,21 +81,21 @@ namespace Waveshare.Test.Devices.Epd7in5bc
         [Test]
         public void ConstructorTest()
         {
-            using var result = new Epd7In5Bc();
+            using Epd7In5Bc result = new Epd7In5Bc();
             result.Initialize(m_EPaperDisplayHardwareMock.Object);
         }
 
         [Test]
         public void DisposeNoHardwareTest()
         {
-            using var result = new Epd7In5Bc();
+            using Epd7In5Bc result = new Epd7In5Bc();
             result.Initialize(m_EPaperDisplayHardwareMock.Object);
         }
 
         [Test]
         public void DoubleDisposeTest()
         {
-            var result = new Epd7In5Bc();
+            Epd7In5Bc result = new Epd7In5Bc();
             result.Initialize(m_EPaperDisplayHardwareMock.Object);
             result.Dispose();
             result.Dispose();
@@ -104,10 +104,10 @@ namespace Waveshare.Test.Devices.Epd7in5bc
         [Test]
         public void FinalizerTest()
         {
-            var result = new Epd7In5Bc();
+            Epd7In5Bc result = new Epd7In5Bc();
             result.Initialize(m_EPaperDisplayHardwareMock.Object);
 
-            Assert.NotNull(result, "Object should not be null");
+            Assert.That(result, Is.Not.Null, "Object should not be null");
 
             // ReSharper disable once RedundantAssignment
 #pragma warning disable IDE0059 // Unnecessary assignment of a value
@@ -121,9 +121,9 @@ namespace Waveshare.Test.Devices.Epd7in5bc
         [Test]
         public void FinalizerNoHardwareTest()
         {
-            var result = new Epd7In5Bc();
+            Epd7In5Bc result = new Epd7In5Bc();
 
-            Assert.NotNull(result, "Object should not be null");
+            Assert.That(result, Is.Not.Null, "Object should not be null");
 
             // ReSharper disable once RedundantAssignment
 #pragma warning disable IDE0059 // Unnecessary assignment of a value
@@ -137,64 +137,64 @@ namespace Waveshare.Test.Devices.Epd7in5bc
         [Test]
         public void PowerOnTest()
         {
-            using var result = new Epd7In5Bc();
+            using Epd7In5Bc result = new Epd7In5Bc();
             result.Initialize(m_EPaperDisplayHardwareMock.Object);
 
             m_DataBuffer.Clear();
 
             result.PowerOn();
 
-            var validBuffer = new List<byte>
+            List<byte> validBuffer = new List<byte>
             {
                 (byte)Epd7In5BcCommands.PowerOn,
                 (byte)Epd7In5BcCommands.GetStatus
             };
-            Assert.IsTrue(m_DataBuffer.SequenceEqual(validBuffer), "Command Data Sequence is wrong");
+            Assert.That(m_DataBuffer, Is.EqualTo(validBuffer), "Command Data Sequence is wrong");
         }
 
 
         [Test]
         public void PowerOffTest()
         {
-            using var result = new Epd7In5Bc();
+            using Epd7In5Bc result = new Epd7In5Bc();
             result.Initialize(m_EPaperDisplayHardwareMock.Object);
 
             m_DataBuffer.Clear();
 
             result.PowerOff();
 
-            var validBuffer = new List<byte>
+            List<byte> validBuffer = new List<byte>
             {
                 (byte)Epd7In5BcCommands.PowerOff,
                 (byte)Epd7In5BcCommands.GetStatus
             };
-            Assert.IsTrue(m_DataBuffer.SequenceEqual(validBuffer), "Command Data Sequence is wrong");
+            Assert.That(m_DataBuffer, Is.EqualTo(validBuffer), "Command Data Sequence is wrong");
         }
 
         [Test]
         public void SleepTest()
         {
-            using var result = new Epd7In5Bc();
+            using Epd7In5Bc result = new Epd7In5Bc();
             result.Initialize(m_EPaperDisplayHardwareMock.Object);
 
             m_DataBuffer.Clear();
 
             result.Sleep();
 
-            var validBuffer = new List<byte>
+            List<byte> validBuffer = new List<byte>
             {
                 (byte)Epd7In5BcCommands.PowerOff,
                 (byte)Epd7In5BcCommands.GetStatus,
                 (byte)Epd7In5BcCommands.DeepSleep,
                 0xA5
             };
-            Assert.IsTrue(m_DataBuffer.SequenceEqual(validBuffer), "Command Data Sequence is wrong");
+            Assert.That(m_DataBuffer, Is.EqualTo(validBuffer), "Command Data Sequence is wrong");
         }
 
         [Test]
         public void ClearTest()
         {
-            using var result = new Epd7In5Bc();
+            using Epd7In5Bc result = new Epd7In5Bc();
             result.Initialize(m_EPaperDisplayHardwareMock.Object);
 
             m_DataBuffer.Clear();
@@ -202,12 +202,12 @@ namespace Waveshare.Test.Devices.Epd7in5bc
             result.Clear();
 
             const int pixelPerByte = 2;
-            var displayBytes = result.Width / pixelPerByte * result.Height;
+            int displayBytes = result.Width / pixelPerByte * result.Height;
 
             const byte white = 0x03;
-            var twoWhitePixel = result.MergePixelDataInByte(white, white);
+            byte twoWhitePixel = result.MergePixelDataInByte(white, white);
 
-            var validBuffer = new List<byte>
+            List<byte> validBuffer = new List<byte>
             {
                 (byte) Epd7In5BcCommands.DataStartTransmission1
             };
@@ -222,13 +222,13 @@ namespace Waveshare.Test.Devices.Epd7in5bc
             validBuffer.Add((byte)Epd7In5BcCommands.DisplayRefresh);
             validBuffer.Add((byte)Epd7In5BcCommands.GetStatus);
 
-            Assert.IsTrue(m_DataBuffer.SequenceEqual(validBuffer), "Command Data Sequence is wrong");
+            Assert.That(m_DataBuffer, Is.EqualTo(validBuffer), "Command Data Sequence is wrong");
         }
 
         [Test]
         public void ClearBlackTest()
         {
-            using var result = new Epd7In5Bc();
+            using Epd7In5Bc result = new Epd7In5Bc();
             result.Initialize(m_EPaperDisplayHardwareMock.Object);
 
             m_DataBuffer.Clear();
@@ -236,12 +236,12 @@ namespace Waveshare.Test.Devices.Epd7in5bc
             result.ClearBlack();
 
             const int pixelPerByte = 2;
-            var displayBytes = result.Width / pixelPerByte * result.Height;
+            int displayBytes = result.Width / pixelPerByte * result.Height;
 
             const byte black = 0x00;
-            var twoBlackPixel = result.MergePixelDataInByte(black, black);
+            byte twoBlackPixel = result.MergePixelDataInByte(black, black);
 
-            var validBuffer = new List<byte>
+            List<byte> validBuffer = new List<byte>
             {
                 (byte) Epd7In5BcCommands.DataStartTransmission1
             };
@@ -256,18 +256,18 @@ namespace Waveshare.Test.Devices.Epd7in5bc
             validBuffer.Add((byte)Epd7In5BcCommands.DisplayRefresh);
             validBuffer.Add((byte)Epd7In5BcCommands.GetStatus);
 
-            Assert.IsTrue(m_DataBuffer.SequenceEqual(validBuffer), "Command Data Sequence is wrong");
+            Assert.That(m_DataBuffer, Is.EqualTo(validBuffer), "Command Data Sequence is wrong");
         }
 
         [Test]
         public void DisplayImageTest()
         {
-            using var result = new Epd7In5Bc();
+            using Epd7In5Bc result = new Epd7In5Bc();
             result.Initialize(m_EPaperDisplayHardwareMock.Object);
 
-            var image = CommonTestData.CreateSampleBitmap(result.Width, result.Height);
+            SKBitmap image = CommonTestData.CreateSampleBitmap(result.Width, result.Height);
 
-            var validBuffer = new List<byte>
+            List<byte> validBuffer = new List<byte>
             {
                 (byte) Epd7In5BcCommands.DataStartTransmission1
             };
@@ -283,22 +283,22 @@ namespace Waveshare.Test.Devices.Epd7in5bc
 
             m_DataBuffer.Clear();
 
-            var bitmapEPaperDisplay = new SKBitmapLoader(result);
+            SKBitmapLoader bitmapEPaperDisplay = new SKBitmapLoader(result);
             bitmapEPaperDisplay.DisplayImage(image, false);
 
-            Assert.AreEqual(validBuffer.Count, m_DataBuffer.Count, "Data Length is wrong");
-            Assert.IsTrue(m_DataBuffer.SequenceEqual(validBuffer), "Command Data Sequence is wrong");
+            Assert.That(m_DataBuffer.Count, Is.EqualTo(validBuffer.Count), "Data Length is wrong");
+            Assert.That(m_DataBuffer, Is.EqualTo(validBuffer), "Command Data Sequence is wrong");
         }
 
         [Test]
         public void DisplayImageSmallTest()
         {
-            using var result = new Epd7In5Bc();
+            using Epd7In5Bc result = new Epd7In5Bc();
             result.Initialize(m_EPaperDisplayHardwareMock.Object);
 
-            var image = CommonTestData.CreateSampleBitmap(result.Width / 2, result.Height / 2);
+            SKBitmap image = CommonTestData.CreateSampleBitmap(result.Width / 2, result.Height / 2);
 
-            var validBuffer = new List<byte>
+            List<byte> validBuffer = new List<byte>
             {
                 (byte) Epd7In5BcCommands.DataStartTransmission1
             };
@@ -314,24 +314,24 @@ namespace Waveshare.Test.Devices.Epd7in5bc
 
             m_DataBuffer.Clear();
 
-            var bitmapEPaperDisplay = new SKBitmapLoader(result);
+            SKBitmapLoader bitmapEPaperDisplay = new SKBitmapLoader(result);
             bitmapEPaperDisplay.DisplayImage(image, false);
 
-            Assert.AreEqual(validBuffer.Count, m_DataBuffer.Count, "Data Length is wrong");
-            Assert.IsTrue(m_DataBuffer.SequenceEqual(validBuffer), "Command Data Sequence is wrong");
+            Assert.That(m_DataBuffer.Count, Is.EqualTo(validBuffer.Count), "Data Length is wrong");
+            Assert.That(m_DataBuffer, Is.EqualTo(validBuffer), "Command Data Sequence is wrong");
         }
 
         [Test]
         public void WakeUpTest()
         {
-            using var result = new Epd7In5Bc();
+            using Epd7In5Bc result = new Epd7In5Bc();
             result.Initialize(m_EPaperDisplayHardwareMock.Object);
 
             m_DataBuffer.Clear();
 
             result.WakeUp();
 
-            var validBuffer = new List<byte>
+            List<byte> validBuffer = new List<byte>
             {
                 (byte)Epd7In5BcCommands.PowerSetting,
                 0x37,
@@ -362,24 +362,24 @@ namespace Waveshare.Test.Devices.Epd7in5bc
                 0x03
             };
 
-            Assert.IsTrue(m_DataBuffer.SequenceEqual(validBuffer), "Command Data Sequence is wrong");
+            Assert.That(m_DataBuffer, Is.EqualTo(validBuffer), "Command Data Sequence is wrong");
         }
 
         [Test]
         public void TestMergePixelDataInByte()
         {
-            using var result = new Epd7In5Bc();
+            using Epd7In5Bc result = new Epd7In5Bc();
 
-            var random = new Random();
+            Random random = new Random();
             for (int i = 0; i < 200; i++)
             {
-                var b1 = (byte) random.Next(0, 0x0F);
-                var b2 = (byte) random.Next(0, 0x0F);
+                byte b1 = (byte) random.Next(0, 0x0F);
+                byte b2 = (byte) random.Next(0, 0x0F);
 
-                var oldResult = MergePixelDataInByte(b1, b2);
-                var newResult = result.MergePixelDataInByte(b1, b2);
+                byte oldResult = MergePixelDataInByte(b1, b2);
+                byte newResult = result.MergePixelDataInByte(b1, b2);
 
-                Assert.AreEqual(oldResult, newResult, $"Merged Byte Run {i} is wrong. Expected {oldResult}, Returned {newResult}");
+                Assert.That(newResult, Is.EqualTo(oldResult), $"Merged Byte Run {i} is wrong. Expected {oldResult}, Returned {newResult}");
             }
         }
 
@@ -397,7 +397,7 @@ namespace Waveshare.Test.Devices.Epd7in5bc
         /// <returns></returns>
         private static byte MergePixelDataInByte(byte pixel1, byte pixel2)
         {
-            var output = (byte)(pixel1 << 4);
+            byte output = (byte)(pixel1 << 4);
             output |= pixel2;
             return output;
         }
@@ -413,19 +413,19 @@ namespace Waveshare.Test.Devices.Epd7in5bc
         {
             const int pixelPerByte = 2;
 
-            var imageData = new List<byte>();
+            List<byte> imageData = new List<byte>();
 
-            for (var y = 0; y < height; y++)
+            for (int y = 0; y < height; y++)
             {
-                for (var x = 0; x < width; x += pixelPerByte)
+                for (int x = 0; x < width; x += pixelPerByte)
                 {
-                    var pixel1 = GetPixel(image, x, y);
-                    var pixel1Data = ColorToByte(pixel1);
+                    SKColor pixel1 = GetPixel(image, x, y);
+                    byte pixel1Data = ColorToByte(pixel1);
 
-                    var pixel2 = GetPixel(image, x + 1, y);
-                    var pixel2Data = ColorToByte(pixel2);
+                    SKColor pixel2 = GetPixel(image, x + 1, y);
+                    byte pixel2Data = ColorToByte(pixel2);
 
-                    var mergedData = MergePixelDataInByte(pixel1Data, pixel2Data);
+                    byte mergedData = MergePixelDataInByte(pixel1Data, pixel2Data);
                     imageData.Add(mergedData);
                 }
             }
@@ -442,7 +442,7 @@ namespace Waveshare.Test.Devices.Epd7in5bc
         /// <returns></returns>
         private static SKColor GetPixel(SKBitmap image, int x, int y)
         {
-            var color = SKColors.White;
+            SKColor color = SKColors.White;
 
             if (x < image.Width && y < image.Height)
             {

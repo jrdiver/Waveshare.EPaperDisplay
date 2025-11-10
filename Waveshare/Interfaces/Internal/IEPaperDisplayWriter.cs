@@ -23,38 +23,21 @@
 // --------------------------------------------------------------------------------------------------------------------
 #endregion Copyright
 
-#region Usings
+namespace Waveshare.Interfaces.Internal;
 
-using System;
-
-#endregion Usings
-
-namespace Waveshare.Interfaces.Internal
+/// <summary> Buffered display writer </summary>
+internal interface IEPaperDisplayWriter : IDisposable
 {
-    /// <summary>
-    /// Bufferd display writer
-    /// </summary>
-    internal interface IEPaperDisplayWriter : IDisposable
-    {
-        /// <summary>
-        /// Send the Data to the Hardware
-        /// </summary>
-        void Finish();
+    /// <summary> Send the Data to the Hardware </summary>
+    void Finish();
 
-        /// <summary>
-        /// Write to the Buffer
-        /// </summary>
-        /// <param name="index"></param>
-        void Write(int index);
+    /// <summary> Write to the Buffer </summary>
+    /// <param name="index"></param>
+    void Write(int index);
 
-        /// <summary>
-        /// Write a Blank Line in the Buffer
-        /// </summary>
-        void WriteBlankLine();
+    /// <summary> Write a Blank Line in the Buffer </summary>
+    void WriteBlankLine();
 
-        /// <summary>
-        /// Write a Blank Pixel
-        /// </summary>
-        void WriteBlankPixel();
-    }
+    /// <summary> Write a Blank Pixel </summary>
+    void WriteBlankPixel();
 }

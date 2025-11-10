@@ -23,55 +23,38 @@
 // --------------------------------------------------------------------------------------------------------------------
 #endregion Copyright
 
-#region Usings
-
-using System;
 using SkiaSharp;
-using Waveshare.Interfaces;
-using Waveshare.Interfaces.Internal;
 
-#endregion Usings
+namespace Waveshare.Image;
 
-namespace Waveshare.Image
+internal class SKBitmapLoader : EPaperImageBase<SkiaSharp.SKBitmap>, IEPaperDisplaySKBitmap
 {
-    internal class SKBitmapLoader : EPaperImageBase<SkiaSharp.SKBitmap>, IEPaperDisplaySKBitmap
+    #region Constructor / Dispose / Finalizer
+
+    /// <summary> Constructor </summary>
+    /// <param name="ePaperDisplay"></param>
+    public SKBitmapLoader(IEPaperDisplayInternal ePaperDisplay) : base(ePaperDisplay)
     {
-        //########################################################################################
 
-        #region Constructor / Dispose / Finalizer
-
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="ePaperDisplay"></param>
-        public SKBitmapLoader(IEPaperDisplayInternal ePaperDisplay) : base(ePaperDisplay)
-        {
-        }
-
-        #endregion Constructor / Dispose / Finalizer
-
-        //########################################################################################
-
-        #region Protected Methods
-
-        /// <summary>
-        /// Load the SSKBitmap into a RawImage
-        /// </summary>
-        /// <param name="image"></param>
-        /// <returns></returns>
-        protected override IRawImage LoadImage(SkiaSharp.SKBitmap image)
-        {
-            int maxWith = Math.Min(Width, image.Width);
-            int maxHeight = Math.Min(Height, image.Height);
-
-            SKBitmap subSet = new SkiaSharp.SKBitmap();
-            image.ExtractSubset(subSet, new SkiaSharp.SKRectI(0, 0, maxWith, maxHeight));
-
-            return new SKBitmapRawImage(image.Resize(new SkiaSharp.SKImageInfo(maxWith, maxHeight, SkiaSharp.SKColorType.Bgra8888), SkiaSharp.SKFilterQuality.High));
-        }
-
-        #endregion Protected Methods
-
-        //########################################################################################
     }
+
+    #endregion Constructor / Dispose / Finalizer
+
+    #region Protected Methods
+
+    /// <summary> Load the SSKBitmap into a RawImage </summary>
+    /// <param name="image"></param>
+    /// <returns></returns>
+    protected override IRawImage LoadImage(SkiaSharp.SKBitmap image)
+    {
+        int maxWith = Math.Min(Width, image.Width);
+        int maxHeight = Math.Min(Height, image.Height);
+
+        SKBitmap subSet = new();
+        image.ExtractSubset(subSet, new(0, 0, maxWith, maxHeight));
+
+        return new SKBitmapRawImage(image.Resize(new SkiaSharp.SKImageInfo(maxWith, maxHeight, SkiaSharp.SKColorType.Bgra8888), SkiaSharp.SKFilterQuality.High));
+    }
+
+    #endregion Protected Methods
 }

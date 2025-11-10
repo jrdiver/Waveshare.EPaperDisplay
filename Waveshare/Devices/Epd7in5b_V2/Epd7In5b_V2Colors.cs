@@ -23,38 +23,21 @@
 // --------------------------------------------------------------------------------------------------------------------
 #endregion Copyright
 
-#region Usings
+// ReSharper disable InconsistentNaming
+namespace Waveshare.Devices.Epd7in5b_V2;
 
-#endregion Usings
-
-namespace Waveshare.Devices.Epd7in5b_V2
+/// <summary> Byte values for the supported hardware colors </summary>
+internal class Epd7In5b_V2Colors
 {
-    /// <summary>
-    /// Byte values for the supported hardware colors
-    /// </summary>
-    // ReSharper disable once InconsistentNaming
-    internal class Epd7In5b_V2Colors
-    {
+    /// <summary> Byte value for color black </summary>
+    public const byte Black = 0x00;
 
-        /// <summary>
-        /// Byte value for color black
-        /// </summary>
-        public const byte Black = 0x00;
+    /// <summary> Byte value for color white </summary>
+    public const byte White = 0x01;
 
-        /// <summary>
-        /// Byte value for color white
-        /// </summary>
-        public const byte White = 0x01;
+    /// <summary> Byte value for color red </summary>
+    public const byte Red = 0x01;
 
-        /// <summary>
-        /// Byte value for color red
-        /// </summary>
-        public const byte Red = 0x01;
-
-        /// <summary>
-        /// Byte value for color not red
-        /// </summary>
-        public const byte NotRed = 0x00;
-
-    }
+    /// <summary> Byte value for color not red </summary>
+    public const byte NotRed = 0x00;
 }
