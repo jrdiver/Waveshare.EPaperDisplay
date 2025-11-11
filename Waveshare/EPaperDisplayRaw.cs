@@ -46,9 +46,9 @@ public static class EPaperDisplayRaw
     /// <summary> Create an instance of an internal E-Paper Display </summary>
     /// <param name="displayType"></param>
     /// <returns></returns>
-    internal static IEPaperDisplayInternal CreateEPaperDisplay(EPaperDisplayType displayType)
+    internal static IEPaperDisplayInternal? CreateEPaperDisplay(EPaperDisplayType displayType)
     {
-        IEPaperDisplayInternal display = displayType switch
+        IEPaperDisplayInternal? display = displayType switch
         {
             EPaperDisplayType.WaveShare7In5Bc => new Epd7In5Bc(),
             EPaperDisplayType.WaveShare7In5_V2 => new Epd7In5_V2(),

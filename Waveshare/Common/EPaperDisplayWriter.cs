@@ -37,7 +37,7 @@ internal class EPaperDisplayWriter : IEPaperDisplayWriter
     private readonly byte[] m_WhiteLine;
 
     /// <summary> Layer 1 Buffer for the pixels on the device </summary>
-    private MemoryStream m_MemoryStream;
+    private MemoryStream? m_MemoryStream;
 
     /// <summary> Output Bytes </summary>
     private byte m_OutByte;
@@ -127,6 +127,9 @@ internal class EPaperDisplayWriter : IEPaperDisplayWriter
         byte value = Display.DeviceByteColors[index];
         m_ByteCount++;
 
+        if(m_MemoryStream == null)
+            throw new InvalidOperationException("MemoryStream is not initialized. Was this disposed of already?");
+
         if (PixelPerByte == 1)
             m_MemoryStream.WriteByte(value);
         else
@@ -149,6 +152,8 @@ internal class EPaperDisplayWriter : IEPaperDisplayWriter
         while (PixelPerByte > 1 && m_ByteCount % PixelPerByte != PixelThreshold)
             Write(WhiteIndex);
 
+        if (m_MemoryStream == null)
+            throw new InvalidOperationException("MemoryStream is not initialized. Was this disposed of already?");
         m_MemoryStream.Write(m_WhiteLine, 0, m_WhiteLine.Length);
     }
 

@@ -50,30 +50,30 @@ internal sealed class EPaperDisplayHardware : IEPaperDisplayHardware
     #region Properties
 
     /// <summary> SPI Bus Device </summary>
-    internal SpiDevice SpiDevice { get; private set; }
+    internal SpiDevice? SpiDevice { get; private set; }
 
     /// <summary> GPIO Controller Device </summary>
-    internal GpioController GpioController { get; private set; }
+    internal GpioController? GpioController { get; private set; }
 
     /// <summary> GPIO Reset Pin </summary>
     public PinValue ResetPin
     {
-        get => GpioController.Read(GpioResetPin);
-        set => GpioController.Write(GpioResetPin, value);
+        get => GpioController?.Read(GpioResetPin) ?? -1;
+        set => GpioController?.Write(GpioResetPin, value);
     }
 
     /// <summary> GPIO SPI DC Pin </summary>
     public PinValue SpiDcPin
     {
-        get => GpioController.Read(GpioSpiDcPin);
-        set => GpioController.Write(GpioSpiDcPin, value);
+        get => GpioController?.Read(GpioSpiDcPin) ?? -1;
+        set => GpioController?.Write(GpioSpiDcPin, value);
     }
 
     /// <summary> GPIO Busy Pin </summary>
     public PinValue BusyPin
     {
-        get => GpioController.Read(GpioBusyPin);
-        set => GpioController.Write(GpioBusyPin, value);
+        get => GpioController?.Read(GpioBusyPin)?? -1;
+        set => GpioController?.Write(GpioBusyPin, value);
     }
 
     #endregion Properties
@@ -93,13 +93,13 @@ internal sealed class EPaperDisplayHardware : IEPaperDisplayHardware
     {
         GpioController = gpioController;
 
-        GpioController?.OpenPin(GpioResetPin);
-        GpioController?.OpenPin(GpioSpiDcPin);
-        GpioController?.OpenPin(GpioBusyPin);
+        GpioController.OpenPin(GpioResetPin);
+        GpioController.OpenPin(GpioSpiDcPin);
+        GpioController.OpenPin(GpioBusyPin);
 
-        GpioController?.SetPinMode(GpioResetPin, PinMode.Output);
-        GpioController?.SetPinMode(GpioSpiDcPin, PinMode.Output);
-        GpioController?.SetPinMode(GpioBusyPin, PinMode.Input);
+        GpioController.SetPinMode(GpioResetPin, PinMode.Output);
+        GpioController.SetPinMode(GpioSpiDcPin, PinMode.Output);
+        GpioController.SetPinMode(GpioBusyPin, PinMode.Input);
 
         SpiDevice = spiDevice;
     }

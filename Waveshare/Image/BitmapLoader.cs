@@ -1,7 +1,7 @@
 ﻿#region Copyright
 // --------------------------------------------------------------------------------------------------------------------
 // MIT License
-// Copyright(c) 2022 Andre Wehrli
+// Copyright(c) 2021 Andre Wehrli
 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -23,17 +23,19 @@
 // --------------------------------------------------------------------------------------------------------------------
 #endregion Copyright
 
-using SkiaSharp;
+using System.Drawing;
+using Waveshare.Interfaces;
 
 namespace Waveshare.Image;
 
-internal class SKBitmapLoader : EPaperImageBase<SKBitmap>, IEPaperDisplaySKBitmap
+/// <summary> System.Drawing.Bitmap Image Loader </summary>
+internal class BitmapLoader : EPaperImageBase<Bitmap>, IEPaperDisplayBitmap
 {
     #region Constructor / Dispose / Finalizer
 
     /// <summary> Constructor </summary>
     /// <param name="ePaperDisplay"></param>
-    public SKBitmapLoader(IEPaperDisplayInternal ePaperDisplay) : base(ePaperDisplay)
+    public BitmapLoader(IEPaperDisplayInternal ePaperDisplay) : base(ePaperDisplay)
     {
 
     }
@@ -42,18 +44,15 @@ internal class SKBitmapLoader : EPaperImageBase<SKBitmap>, IEPaperDisplaySKBitma
 
     #region Protected Methods
 
-    /// <summary> Load the SSKBitmap into a RawImage </summary>
+    /// <summary> Load the System.Drawing.Bitmap into a RawImage </summary>
     /// <param name="image"></param>
     /// <returns></returns>
-    protected override IRawImage LoadImage(SKBitmap image)
+    protected override IRawImage LoadImage(Bitmap image)
     {
-        int maxWith = Math.Min(Width, image.Width);
+        int maxWidth = Math.Min(Width, image.Width);
         int maxHeight = Math.Min(Height, image.Height);
 
-        SKBitmap subSet = new();
-        image.ExtractSubset(subSet, new(0, 0, maxWith, maxHeight));
-
-        return new SKBitmapRawImage(image.Resize(new SKImageInfo(maxWith, maxHeight, SKColorType.Bgra8888), SKFilterQuality.High));
+        return new BitmapRawImage(image, maxWidth, maxHeight);
     }
 
     #endregion Protected Methods

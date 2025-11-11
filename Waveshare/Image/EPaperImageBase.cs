@@ -34,13 +34,13 @@ internal abstract class EPaperImageBase<T> : IEPaperDisplayImage<T>
     #region Properties
 
     /// <summary> Internal E-Paper Display </summary>
-    private IEPaperDisplayInternal EPaperDisplay { get; set; }
+    private IEPaperDisplayInternal? EPaperDisplay { get; set; }
 
     /// <summary> Pixel Width of the Display </summary>
-    public int Width => EPaperDisplay.Width;
+    public int Width => EPaperDisplay?.Width ?? 0;
 
     /// <summary> Pixel Height of the Display </summary>
-    public int Height => EPaperDisplay.Height;
+    public int Height => EPaperDisplay?.Height ?? 0;
 
     #endregion Properties
 
@@ -77,33 +77,33 @@ internal abstract class EPaperImageBase<T> : IEPaperDisplayImage<T>
 
     /// <summary> Wait until the display is ready </summary>
     /// <returns>true if device is ready, false for timeout</returns>
-    public bool WaitUntilReady() => EPaperDisplay.WaitUntilReady();
+    public bool WaitUntilReady() => EPaperDisplay?.WaitUntilReady() ?? false;
 
     /// <summary> Wait until the display is ready </summary>
     /// <param name="timeout"></param>
     /// <returns>true if device is ready, false for timeout</returns>
-    public bool WaitUntilReady(int timeout) => EPaperDisplay.WaitUntilReady(timeout);
+    public bool WaitUntilReady(int timeout) => EPaperDisplay?.WaitUntilReady(timeout) ?? false;
 
     /// <summary> Power the controller on.  Do not use with SleepMode. </summary>
-    public void PowerOn() => EPaperDisplay.PowerOn();
+    public void PowerOn() => EPaperDisplay?.PowerOn();
 
     /// <summary> Power the controller off.  Do not use with SleepMode. </summary>
-    public void PowerOff() => EPaperDisplay.PowerOff();
+    public void PowerOff() => EPaperDisplay?.PowerOff();
 
     /// <summary> Send the Display into SleepMode </summary>
-    public void Sleep() => EPaperDisplay.Sleep();
+    public void Sleep() => EPaperDisplay?.Sleep();
 
     /// <summary> WakeUp the Display from SleepMode </summary>
-    public void WakeUp() => EPaperDisplay.WakeUp();
+    public void WakeUp() => EPaperDisplay?.WakeUp();
 
     /// <summary> Clear the Display to White </summary>
-    public void Clear() => EPaperDisplay.Clear();
+    public void Clear() => EPaperDisplay?.Clear();
 
     /// <summary> Clear the Display to Black </summary>
-    public void ClearBlack() => EPaperDisplay.ClearBlack();
+    public void ClearBlack() => EPaperDisplay?.ClearBlack();
 
     /// <summary> Reset the Display </summary>
-    public void Reset() => EPaperDisplay.Reset();
+    public void Reset() => EPaperDisplay?.Reset();
 
     /// <summary> Display an Image on the Display </summary>
     /// <param name="image">Image to be displayed</param>
@@ -120,6 +120,9 @@ internal abstract class EPaperImageBase<T> : IEPaperDisplayImage<T>
     /// <param name="image">Image to be displayed</param>
     public void DisplayImage(T image)
     {
+        if (EPaperDisplay is null)
+            throw new InvalidOperationException("E-Paper Display is not initialized.");
+
         using IRawImage rawImage = LoadImage(image);
         EPaperDisplay.ColorBytesPerPixel = rawImage.BytesPerPixel;
         EPaperDisplay.DisplayImage(rawImage, false);
@@ -129,6 +132,9 @@ internal abstract class EPaperImageBase<T> : IEPaperDisplayImage<T>
     /// <param name="image">Image to be displayed</param>
     public void DisplayImageWithDithering(T image)
     {
+        if (EPaperDisplay is null)
+            throw new InvalidOperationException("E-Paper Display is not initialized.");
+
         using IRawImage rawImage = LoadImage(image);
         EPaperDisplay.ColorBytesPerPixel = rawImage.BytesPerPixel;
         EPaperDisplay.DisplayImage(rawImage, true);

@@ -1,7 +1,7 @@
 ﻿#region Copyright
 // --------------------------------------------------------------------------------------------------------------------
 // MIT License
-// Copyright(c) 2021 Andre Wehrli
+// Copyright(c) 2022 Andre Wehrli
 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -23,28 +23,39 @@
 // --------------------------------------------------------------------------------------------------------------------
 #endregion Copyright
 
-#region Usings
+using SkiaSharp;
+using Waveshare.Interfaces;
 
-using Waveshare.Devices;
-using Waveshare.Image;
+namespace Waveshare.Image;
 
-#endregion Usings
-
-namespace Waveshare;
-
-/// <summary> E-Paper Display Factory </summary>
-public static class EPaperDisplay
+internal class SKBitmapLoader : EPaperImageBase<SKBitmap>, IEPaperDisplaySKBitmap
 {
-    #region Public Methods
+    #region Constructor / Dispose / Finalizer
 
-    /// <summary> Create an instance of an E-Paper Display for System.Drawing.Bitmap </summary>
-    /// <param name="displayType"></param>
-    /// <returns></returns>
-    public static IEPaperDisplaySKBitmap? Create(EPaperDisplayType displayType)
+    /// <summary> Constructor </summary>
+    /// <param name="ePaperDisplay"></param>
+    public SKBitmapLoader(IEPaperDisplayInternal ePaperDisplay) : base(ePaperDisplay)
     {
-        IEPaperDisplayInternal? ePaperDisplay = EPaperDisplayRaw.CreateEPaperDisplay(displayType);
-        return ePaperDisplay != null ? new SKBitmapLoader(ePaperDisplay) : null;
+
     }
 
-    #endregion Public Methods
+    #endregion Constructor / Dispose / Finalizer
+
+    #region Protected Methods
+
+    /// <summary> Load the SSKBitmap into a RawImage </summary>
+    /// <param name="image"></param>
+    /// <returns></returns>
+    protected override IRawImage LoadImage(SKBitmap image)
+    {
+        int maxWith = Math.Min(Width, image.Width);
+        int maxHeight = Math.Min(Height, image.Height);
+
+        SKBitmap subSet = new();
+        image.ExtractSubset(subSet, new(0, 0, maxWith, maxHeight));
+
+        return new SKBitmapRawImage(image.Resize(new SKImageInfo(maxWith, maxHeight, SKColorType.Bgra8888), SKFilterQuality.High));
+    }
+
+    #endregion Protected Methods
 }

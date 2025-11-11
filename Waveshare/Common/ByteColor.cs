@@ -95,7 +95,7 @@ internal struct ByteColor : IEquatable<ByteColor>
     /// <summary> Override the Equals Operator </summary>
     /// <param name="obj"></param>
     /// <returns></returns>
-    public override bool Equals(object obj) => obj is ByteColor other && Equals(other);
+    public override bool Equals(object? obj) => obj is ByteColor other && Equals(other);
 
     /// <summary> Equals Operator </summary>
     /// <param name="p"></param>

@@ -42,7 +42,7 @@ namespace Waveshare.Example
         {
             Console.Write("Initializing E-Paper Display...");
             Stopwatch time = Stopwatch.StartNew();
-            using IEPaperDisplaySKBitmap ePaperDisplay = EPaperDisplay.Create(EPaperDisplayType.WaveShare7In5_V2);
+            using IEPaperDisplaySKBitmap ePaperDisplay = EPaperDisplay.CreateSKBitmap(EPaperDisplayType.WaveShare7In5_V2);
             time.Stop();
             Console.WriteLine($" [Done {time.ElapsedMilliseconds} ms]");
 

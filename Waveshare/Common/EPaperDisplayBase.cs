@@ -42,7 +42,7 @@ internal abstract class EPaperDisplayBase : IEPaperDisplayInternal
     #region Fields
 
     /// <summary> Buffered Display Writer </summary>
-    private IEPaperDisplayWriter m_DisplayWriter;
+    private IEPaperDisplayWriter? m_DisplayWriter;
 
     /// <summary> Has class been disposed </summary>
     private bool m_Disposed;
@@ -79,7 +79,7 @@ internal abstract class EPaperDisplayBase : IEPaperDisplayInternal
     public abstract int PixelPerByte { get; }
 
     /// <summary> E-Paper Hardware Interface for GPIO and SPI Bus </summary>
-    public IEPaperDisplayHardware EPaperDisplayHardware { get; set; }
+    public IEPaperDisplayHardware? EPaperDisplayHardware { get; set; }
 
     /// <summary> Get Status Command </summary>
     protected abstract byte GetStatusCommand { get; }
@@ -136,6 +136,9 @@ internal abstract class EPaperDisplayBase : IEPaperDisplayInternal
     /// <returns>true if device is ready, false for timeout</returns>
     public bool WaitUntilReady(int timeout)
     {
+        if (EPaperDisplayHardware is null)
+            throw new InvalidOperationException("EPaperDisplayHardware is not initialized.");
+
         bool busy;
 
         Stopwatch timeoutTimer = Stopwatch.StartNew();
@@ -156,6 +159,9 @@ internal abstract class EPaperDisplayBase : IEPaperDisplayInternal
     /// <summary> Reset the Display </summary>
     public void Reset()
     {
+        if (EPaperDisplayHardware is null)
+            throw new InvalidOperationException("EPaperDisplayHardware is not initialized.");
+
         EPaperDisplayHardware.ResetPin = PinValue.High;
         Thread.Sleep(200);
         EPaperDisplayHardware.ResetPin = PinValue.Low;
@@ -254,6 +260,9 @@ internal abstract class EPaperDisplayBase : IEPaperDisplayInternal
     /// <param name="command"></param>
     public void SendCommand(byte command)
     {
+        if (EPaperDisplayHardware is null)
+            throw new InvalidOperationException("EPaperDisplayHardware is not initialized.");
+
         EPaperDisplayHardware.SpiDcPin = PinValue.Low;
         EPaperDisplayHardware.WriteByte(command);
     }
@@ -262,6 +271,9 @@ internal abstract class EPaperDisplayBase : IEPaperDisplayInternal
     /// <param name="commands"></param>
     protected void SendCommands(params byte[] commands)
     {
+        if (EPaperDisplayHardware is null)
+            throw new InvalidOperationException("EPaperDisplayHardware is not initialized.");
+
         EPaperDisplayHardware.SpiDcPin = PinValue.Low;
         EPaperDisplayHardware.Write(commands);
     }
@@ -270,6 +282,9 @@ internal abstract class EPaperDisplayBase : IEPaperDisplayInternal
     /// <param name="data"></param>
     public void SendData(byte data)
     {
+        if (EPaperDisplayHardware is null)
+            throw new InvalidOperationException("EPaperDisplayHardware is not initialized.");
+
         EPaperDisplayHardware.SpiDcPin = PinValue.High;
         EPaperDisplayHardware.WriteByte(data);
     }
@@ -278,6 +293,9 @@ internal abstract class EPaperDisplayBase : IEPaperDisplayInternal
     /// <param name="data"></param>
     public void SendData(params byte[] data)
     {
+        if (EPaperDisplayHardware is null)
+            throw new InvalidOperationException("EPaperDisplayHardware is not initialized.");
+
         EPaperDisplayHardware.SpiDcPin = PinValue.High;
         EPaperDisplayHardware.Write(data);
     }
@@ -286,6 +304,9 @@ internal abstract class EPaperDisplayBase : IEPaperDisplayInternal
     /// <param name="stream"></param>
     public void SendData(MemoryStream stream)
     {
+        if (EPaperDisplayHardware is null)
+            throw new InvalidOperationException("EPaperDisplayHardware is not initialized.");
+
         EPaperDisplayHardware.SpiDcPin = PinValue.High;
         EPaperDisplayHardware.Write(stream);
     }

@@ -49,7 +49,7 @@ internal class Epd7In5BV2Writer : EPaperDisplayWriter
     private readonly byte[] m_BlackLine;
 
     /// <summary> Layer 2 Buffer for the pixels on the device </summary>
-    private MemoryStream m_Layer2MemoryStream;
+    private MemoryStream? m_Layer2MemoryStream;
 
     /// <summary> Output bytes </summary>
     private byte m_OutByte;
@@ -92,7 +92,7 @@ internal class Epd7In5BV2Writer : EPaperDisplayWriter
     public override void Finish()
     {
         base.Finish();
-        if (m_Layer2MemoryStream.Length > 0)
+        if (m_Layer2MemoryStream is { Length: > 0 })
         {
             Display.SendCommand((byte)Epd7In5b_V2Commands.DataStartTransmission2);
             m_Layer2MemoryStream.Position = 0;
@@ -118,14 +118,14 @@ internal class Epd7In5BV2Writer : EPaperDisplayWriter
         }
 
         if (PixelPerByte == 1)
-            m_Layer2MemoryStream.WriteByte(value);
+            m_Layer2MemoryStream?.WriteByte(value);
         else
         {
             m_OutByte <<= BitShift;
             m_OutByte |= value;
             if (ByteCount % PixelPerByte == PixelThreshold)
             {
-                m_Layer2MemoryStream.WriteByte(m_OutByte);
+                m_Layer2MemoryStream?.WriteByte(m_OutByte);
                 m_OutByte = 0;
             }
         }
@@ -134,10 +134,10 @@ internal class Epd7In5BV2Writer : EPaperDisplayWriter
     /// <summary> Write a Blank Line in the Buffer </summary>
     public override void WriteBlankLine()
     {
-        while (PixelPerByte > 1 && ByteCount % PixelPerByte != PixelThreshold) 
+        while (PixelPerByte > 1 && ByteCount % PixelPerByte != PixelThreshold)
             Write(WhiteIndex);
 
-        m_Layer2MemoryStream.Write(m_BlackLine, 0, m_BlackLine.Length);
+        m_Layer2MemoryStream?.Write(m_BlackLine, 0, m_BlackLine.Length);
         base.WriteBlankLine();
     }
 

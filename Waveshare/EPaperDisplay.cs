@@ -23,12 +23,34 @@
 // --------------------------------------------------------------------------------------------------------------------
 #endregion Copyright
 
-#region Usings
+using Waveshare.Devices;
+using Waveshare.Image;
+using Waveshare.Interfaces;
 
-using System.Runtime.CompilerServices;
+namespace Waveshare;
 
-#endregion Usings
+/// <summary> E-Paper Display Factory </summary>
+public static class EPaperDisplay
+{
+    #region Public Methods
 
-[assembly: InternalsVisibleTo("Waveshare.Test")]
-[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
+    /// <summary> Create an instance of an E-Paper Display for System.Drawing.Bitmap </summary>
+    /// <param name="displayType"></param>
+    /// <returns></returns>
+    public static IEPaperDisplayBitmap? CreateBitmap(EPaperDisplayType displayType)
+    {
+        IEPaperDisplayInternal? ePaperDisplay = EPaperDisplayRaw.CreateEPaperDisplay(displayType);
+        return ePaperDisplay != null ? new BitmapLoader(ePaperDisplay) : null;
+    }
 
+    /// <summary> Create an instance of an E-Paper Display for System.Drawing.Bitmap </summary>
+    /// <param name="displayType"></param>
+    /// <returns></returns>
+    public static IEPaperDisplaySKBitmap? CreateSKBitmap(EPaperDisplayType displayType)
+    {
+        IEPaperDisplayInternal? ePaperDisplay = EPaperDisplayRaw.CreateEPaperDisplay(displayType);
+        return ePaperDisplay != null ? new SKBitmapLoader(ePaperDisplay) : null;
+    }
+
+    #endregion Public Methods
+}

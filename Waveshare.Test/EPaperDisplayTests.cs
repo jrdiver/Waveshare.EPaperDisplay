@@ -33,7 +33,7 @@ public class EPaperDisplayTests
     [Test]
     public void CreateNoneTest()
     {
-        using IEPaperDisplaySKBitmap result = EPaperDisplay.Create(EPaperDisplayType.None);
+        using IEPaperDisplaySKBitmap result = EPaperDisplay.CreateSKBitmap(EPaperDisplayType.None);
         Assert.That(result, Is.Null, $"Enum Value {EPaperDisplayType.None} should not return a object");
     }
 
@@ -44,7 +44,7 @@ public class EPaperDisplayTests
         ePaperDisplayHardwareMock.SetupGet(e => e.BusyPin).Returns(PinValue.High);
         EPaperDisplayRaw.EPaperDisplayHardware = new(() => ePaperDisplayHardwareMock.Object);
 
-        using IEPaperDisplaySKBitmap result = EPaperDisplay.Create(EPaperDisplayType.WaveShare7In5Bc);
+        using IEPaperDisplaySKBitmap result = EPaperDisplay.CreateSKBitmap(EPaperDisplayType.WaveShare7In5Bc);
         Assert.That(result, Is.Not.Null, $"Enum Value {EPaperDisplayType.WaveShare7In5Bc} should return a object");
     }
 
@@ -55,7 +55,7 @@ public class EPaperDisplayTests
         ePaperDisplayHardwareMock.SetupGet(e => e.BusyPin).Returns(PinValue.High);
         EPaperDisplayRaw.EPaperDisplayHardware = new(() => ePaperDisplayHardwareMock.Object);
 
-        using IEPaperDisplaySKBitmap result = EPaperDisplay.Create(EPaperDisplayType.WaveShare7In5_V2);
+        using IEPaperDisplaySKBitmap result = EPaperDisplay.CreateSKBitmap(EPaperDisplayType.WaveShare7In5_V2);
         Assert.That(result, Is.Not.Null, $"Enum Value {EPaperDisplayType.WaveShare7In5_V2} should return a object");
     }
 
@@ -66,7 +66,7 @@ public class EPaperDisplayTests
         ePaperDisplayHardwareMock.SetupGet(e => e.BusyPin).Returns(PinValue.High);
         EPaperDisplayRaw.EPaperDisplayHardware = new(() => ePaperDisplayHardwareMock.Object);
 
-        using IEPaperDisplaySKBitmap result = EPaperDisplay.Create(EPaperDisplayType.WaveShare7In5b_V2);
+        using IEPaperDisplaySKBitmap result = EPaperDisplay.CreateSKBitmap(EPaperDisplayType.WaveShare7In5b_V2);
         Assert.That(result, Is.Not.Null, $"Enum Value {EPaperDisplayType.WaveShare7In5b_V2} should return a object");
     }
 
@@ -77,7 +77,7 @@ public class EPaperDisplayTests
         ePaperDisplayHardwareMock.SetupGet(e => e.BusyPin).Returns(PinValue.High);
         EPaperDisplayRaw.EPaperDisplayHardware = new(() => ePaperDisplayHardwareMock.Object);
 
-        using IEPaperDisplaySKBitmap result = EPaperDisplay.Create(EPaperDisplayType.WaveShare5In65f);
+        using IEPaperDisplaySKBitmap result = EPaperDisplay.CreateSKBitmap(EPaperDisplayType.WaveShare5In65f);
         Assert.That(result, Is.Not.Null, $"Enum Value {EPaperDisplayType.WaveShare5In65f} should return a object");
     }
 
