@@ -1,5 +1,7 @@
 # Waveshare.EPaperDisplay
-Library for .Net Core to control a Waveshare E-Paper Display
+Library for .Net 8+ to control a Waveshare E-Paper Display.
+
+This fork of the library has been updated to work on newer Raspbian versios that were after the SPI udpates that prevented the old way from working.  
 
 Currently supported Models:
 - Waveshare 7.5inch e-Paper (B)
@@ -41,6 +43,14 @@ public static void Main()
 ## Example running on Raspberry Pi 3
 
 ![Screenshot](workingWithRaspberryPi.jpg)
+
+## Notes on Setup
+This fork of this library was tested on:
+- Raspbery Pi 2
+- Raspbian 13 Trixie
+- SPI Enabled in raspi-config
+- "libgpiod-dev" installed via apt
+- 7.5inch_e-Paper_V2 panel
 
 ## License
 [MIT](LICENSE)
