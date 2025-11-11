@@ -23,17 +23,12 @@
 // --------------------------------------------------------------------------------------------------------------------
 #endregion Copyright
 
-#region Usings
+using System.Drawing;
 
-#endregion Usings
+namespace Waveshare.Interfaces;
 
-namespace Waveshare.Interfaces
+/// <summary> Interface for EPaperDisplays with System Drawing Bitmap </summary>
+public interface IEPaperDisplayBitmap : IEPaperDisplayImage<Bitmap>
 {
-    /// <summary>
-    /// Interface for EPaperDisplays with System Drawing Bitmap
-    /// </summary>
-    public interface IEPaperDisplayBitmap : IEPaperDisplayImage<System.Drawing.Bitmap>
-    {
-        
-    }
+
 }

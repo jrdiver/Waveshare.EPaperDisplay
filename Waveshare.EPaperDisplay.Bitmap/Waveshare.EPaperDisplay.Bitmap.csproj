@@ -16,6 +16,7 @@
 		<PackageTags>epaper e-paperdisplay waveshare-eink</PackageTags>
 		<PackageReleaseNotes>Send a System.Drawing.Bitmap to the Waveshare E-Paper Display</PackageReleaseNotes>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<RootNamespace>Waveshare</RootNamespace>
 	</PropertyGroup>
 
 	<ItemGroup>

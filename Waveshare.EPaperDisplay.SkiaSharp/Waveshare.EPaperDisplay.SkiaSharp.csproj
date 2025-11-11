@@ -15,7 +15,6 @@
 		<PackageTags>epaper e-paperdisplay waveshare-eink</PackageTags>
 		<PackageReleaseNotes>Send a SkiaSharp.SKBitmap to the Waveshare E-Paper Display</PackageReleaseNotes>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<LangVersion>12</LangVersion>
 		<RootNamespace>Waveshare</RootNamespace>
 	  <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>

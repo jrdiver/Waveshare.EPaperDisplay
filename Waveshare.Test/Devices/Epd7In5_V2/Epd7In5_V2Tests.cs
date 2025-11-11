@@ -23,511 +23,441 @@
 // --------------------------------------------------------------------------------------------------------------------
 #endregion Copyright
 
-#region Usings
-
-using Moq;
-using NUnit.Framework;
-using SkiaSharp;
-using System;
-using System.Collections.Generic;
-using System.Device.Gpio;
-using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
 using Waveshare.Devices.Epd7in5_V2;
-using Waveshare.Image;
-using Waveshare.Interfaces.Internal;
 
-#endregion Usings
+namespace Waveshare.Test.Devices.Epd7in5_V2;
 
-namespace Waveshare.Test.Devices.Epd7in5_V2
+// ReSharper disable once InconsistentNaming
+public class Epd7In5_V2Tests
 {
-    // ReSharper disable once InconsistentNaming
-    public class Epd7In5_V2Tests
+    #region Fields
+
+    private List<byte> m_DataBuffer;
+    private Mock<IEPaperDisplayHardware> m_EPaperDisplayHardwareMock;
+
+    #endregion Fields
+
+    #region Setup
+
+    [SetUp]
+    public void Setup()
     {
-
-        //########################################################################################
-
-        #region Fields
-
-        private List<byte> m_DataBuffer;
-        private Mock<IEPaperDisplayHardware> m_EPaperDisplayHardwareMock;
-
-        #endregion Fields
-
-        //########################################################################################
-
-        #region Setup
-
-        [SetUp]
-        public void Setup()
-        {
-            m_DataBuffer = new List<byte>();
-
-            m_EPaperDisplayHardwareMock = new Mock<IEPaperDisplayHardware>();
-            m_EPaperDisplayHardwareMock.Setup(e => e.BusyPin).Returns(PinValue.High);
-            m_EPaperDisplayHardwareMock.Setup(e => e.Write(It.IsAny<byte[]>())).Callback((byte[] b) => m_DataBuffer.AddRange(b));
-            m_EPaperDisplayHardwareMock.Setup(e => e.WriteByte(It.IsAny<byte>())).Callback((byte b) => m_DataBuffer.Add(b));
-            m_EPaperDisplayHardwareMock.Setup(e => e.Write(It.IsAny<MemoryStream>())).Callback((MemoryStream b) => m_DataBuffer.AddRange(b.ToArray()));
-        }
-
-        #endregion Setup
-
-        //########################################################################################
-
-        #region Tests
-
-        [Test]
-        public void ConstructorTest()
-        {
-            using Epd7In5_V2 result = new Epd7In5_V2();
-            result.Initialize(m_EPaperDisplayHardwareMock.Object);
-        }
-
-        [Test]
-        public void DisposeNoHardwareTest()
-        {
-            using Epd7In5_V2 result = new Epd7In5_V2();
-            result.Initialize(m_EPaperDisplayHardwareMock.Object);
-        }
-
-        [Test]
-        public void DoubleDisposeTest()
-        {
-            Epd7In5_V2 result = new Epd7In5_V2();
-            result.Initialize(m_EPaperDisplayHardwareMock.Object);
-            result.Dispose();
-            result.Dispose();
-        }
-
-        [Test]
-        public void FinalizerTest()
-        {
-            Epd7In5_V2 result = new Epd7In5_V2();
-            result.Initialize(m_EPaperDisplayHardwareMock.Object);
-
-            Assert.That(result, Is.Not.Null, "Object should not be null");
-
-            // ReSharper disable once RedundantAssignment
-#pragma warning disable IDE0059 // Unnecessary assignment of a value
-            result = null;
-#pragma warning restore IDE0059 // Unnecessary assignment of a value
-
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-        }
-
-        [Test]
-        public void FinalizerNoHardwareTest()
-        {
-            Epd7In5_V2 result = new Epd7In5_V2();
-
-            Assert.That(result, Is.Not.Null, "Object should not be null");
-
-            // ReSharper disable once RedundantAssignment
-#pragma warning disable IDE0059 // Unnecessary assignment of a value
-            result = null;
-#pragma warning restore IDE0059 // Unnecessary assignment of a value
-
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-        }
-
-        [Test]
-        public void PowerOnTest()
-        {
-            using Epd7In5_V2 result = new Epd7In5_V2();
-            result.Initialize(m_EPaperDisplayHardwareMock.Object);
-
-            m_DataBuffer.Clear();
-
-            result.PowerOn();
-
-            List<byte> validBuffer = new List<byte>
-            {
-                (byte)Epd7In5_V2Commands.PowerOn,
-                (byte)Epd7In5_V2Commands.GetStatus
-            };
-            Assert.That(m_DataBuffer, Is.EqualTo(validBuffer), "Command Data Sequence is wrong");
-        }
-
-
-        [Test]
-        public void PowerOffTest()
-        {
-            using Epd7In5_V2 result = new Epd7In5_V2();
-            result.Initialize(m_EPaperDisplayHardwareMock.Object);
-
-            m_DataBuffer.Clear();
-
-            result.PowerOff();
-
-            List<byte> validBuffer = new List<byte>
-            {
-                (byte)Epd7In5_V2Commands.PowerOff,
-                (byte)Epd7In5_V2Commands.GetStatus
-            };
-            Assert.That(m_DataBuffer, Is.EqualTo(validBuffer), "Command Data Sequence is wrong");
-        }
-
-        [Test]
-        public void SleepTest()
-        {
-            using Epd7In5_V2 result = new Epd7In5_V2();
-            result.Initialize(m_EPaperDisplayHardwareMock.Object);
-
-            m_DataBuffer.Clear();
-
-            result.Sleep();
-
-            List<byte> validBuffer = new List<byte>
-            {
-                (byte)Epd7In5_V2Commands.PowerOff,
-                (byte)Epd7In5_V2Commands.GetStatus,
-                (byte)Epd7In5_V2Commands.DeepSleep,
-                0xA5
-            };
-            Assert.That(m_DataBuffer, Is.EqualTo(validBuffer), "Command Data Sequence is wrong");
-        }
-
-        [Test]
-        public void ClearTest()
-        {
-            using Epd7In5_V2 result = new Epd7In5_V2();
-            result.Initialize(m_EPaperDisplayHardwareMock.Object);
-
-            m_DataBuffer.Clear();
-
-            result.Clear();
-
-            const int pixelPerByte = 8;
-            int displayBytes = result.Width / pixelPerByte * result.Height;
-
-            const byte white = 0x00;
-            byte eightWhitePixel = result.MergePixelDataInByte(white, white, white, white, white, white, white, white);
-
-            List<byte> validBuffer = new List<byte>
-            {
-                (byte) Epd7In5_V2Commands.DataStartTransmission1
-            };
-
-            for (int i = 0; i < displayBytes; i++)
-            {
-                validBuffer.Add(eightWhitePixel);
-            }
-
-            validBuffer.Add((byte)Epd7In5_V2Commands.DataStartTransmission2);
-
-            for (int i = 0; i < displayBytes; i++)
-            {
-                validBuffer.Add(eightWhitePixel);
-            }
-            validBuffer.Add((byte)Epd7In5_V2Commands.DisplayRefresh);
-            validBuffer.Add((byte)Epd7In5_V2Commands.GetStatus);
-
-            Assert.That(m_DataBuffer, Is.EqualTo(validBuffer), "Command Data Sequence is wrong");
-        }
-
-
-        [Test]
-        public void ClearBlackTest()
-        {
-            using Epd7In5_V2 result = new Epd7In5_V2();
-            result.Initialize(m_EPaperDisplayHardwareMock.Object);
-
-            m_DataBuffer.Clear();
-
-            result.ClearBlack();
-
-            const int pixelPerByte = 8;
-            int displayBytes = result.Width / pixelPerByte * result.Height;
-
-            const byte black = 0x01;
-            byte eightBlackPixel = result.MergePixelDataInByte(black, black, black, black, black, black, black, black);
-
-            List<byte> validBuffer = new List<byte>
-            {
-                (byte) Epd7In5_V2Commands.DataStartTransmission2
-            };
-
-            for (int i = 0; i < displayBytes; i++)
-            {
-                validBuffer.Add(eightBlackPixel);
-            }
-
-            validBuffer.Add((byte)Epd7In5_V2Commands.DisplayRefresh);
-            validBuffer.Add((byte)Epd7In5_V2Commands.GetStatus);
-
-            Assert.That(m_DataBuffer, Is.EqualTo(validBuffer), "Command Data Sequence is wrong");
-        }
-
-        [Test]
-        public void DisplayImageTest()
-        {
-            using Epd7In5_V2 result = new Epd7In5_V2();
-            result.Initialize(m_EPaperDisplayHardwareMock.Object);
-
-            SKBitmap image = CommonTestData.CreateSampleBitmap(result.Width, result.Height);
-
-            List<byte> validBuffer = new List<byte>
-            {
-                (byte) Epd7In5_V2Commands.DataStartTransmission2
-            };
-
-            m_DataBuffer.Clear();
-
-            validBuffer.AddRange(SendBitmapToDevice(image, result.Width, result.Height));
-            validBuffer.Add((byte)Epd7In5_V2Commands.DisplayRefresh);
-            validBuffer.Add((byte)Epd7In5_V2Commands.GetStatus);
-
-            m_DataBuffer.Clear();
-
-            SKBitmapLoader bitmapEPaperDisplay = new SKBitmapLoader(result);
-            bitmapEPaperDisplay.DisplayImage(image);
-
-            Assert.That(m_DataBuffer.Count, Is.EqualTo(validBuffer.Count), "Data Length is wrong");
-            Assert.That(m_DataBuffer, Is.EqualTo(validBuffer), "Command Data Sequence is wrong");
-        }
-
-        [Test]
-        public void DisplayImageSmallTest()
-        {
-            using Epd7In5_V2 result = new Epd7In5_V2();
-            result.Initialize(m_EPaperDisplayHardwareMock.Object);
-
-            SKBitmap image = CommonTestData.CreateSampleBitmap(result.Width / 2, result.Height / 2);
-
-            List<byte> validBuffer = new List<byte>
-            {
-                (byte) Epd7In5_V2Commands.DataStartTransmission2
-            };
-
-            m_DataBuffer.Clear();
-
-            validBuffer.AddRange(SendBitmapToDevice(image, result.Width, result.Height));
-            validBuffer.Add((byte)Epd7In5_V2Commands.DisplayRefresh);
-            validBuffer.Add((byte)Epd7In5_V2Commands.GetStatus);
-
-            m_DataBuffer.Clear();
-
-            SKBitmapLoader bitmapEPaperDisplay = new SKBitmapLoader(result);
-            bitmapEPaperDisplay.DisplayImage(image);
-
-            Assert.That(m_DataBuffer.Count, Is.EqualTo(validBuffer.Count), "Data Length is wrong");
-            Assert.That(m_DataBuffer, Is.EqualTo(validBuffer), "Command Data Sequence is wrong");
-        }
-
-        [Test]
-        public void WakeUpTest()
-        {
-            using Epd7In5_V2 result = new Epd7In5_V2();
-            result.Initialize(m_EPaperDisplayHardwareMock.Object);
-
-            m_DataBuffer.Clear();
-
-            result.WakeUp();
-
-            List<byte> validBuffer = new List<byte>
-            {
-                (byte)Epd7In5_V2Commands.BoosterSoftStart,
-                0x17,
-                0x17,
-                0x27,
-                0x17,
-                (byte)Epd7In5_V2Commands.PowerSetting,
-                0x07,
-                0x17,
-                0x3f,
-                0x3f,
-                (byte)Epd7In5_V2Commands.PowerOn,
-                (byte)Epd7In5_V2Commands.GetStatus,
-                (byte)Epd7In5_V2Commands.PanelSetting,
-                0x1F,
-                (byte)Epd7In5_V2Commands.TconResolution,
-                0x03,
-                0x20,
-                0x01,
-                0xe0,
-                (byte)Epd7In5_V2Commands.DualSpi,
-                0x00,
-                (byte)Epd7In5_V2Commands.VcomAndDataIntervalSetting,
-                0x10,
-                0x07,
-                (byte)Epd7In5_V2Commands.TconSetting,
-                0x22
-            };
-
-            Assert.That(m_DataBuffer, Is.EqualTo(validBuffer), "Command Data Sequence is wrong");
-        }
-
-        [Test]
-        public void TestMergePixelDataInByte()
-        {
-            using Epd7In5_V2 result = new Epd7In5_V2();
-
-            Random random = new Random();
-            for (int i = 0; i < 200; i++)
-            {
-                int value = random.Next(0, byte.MaxValue);
-                byte b1 = (value & 128) > 0 ? byte.MaxValue: byte.MinValue;
-                byte b2 = (value & 64) > 0 ? byte.MaxValue : byte.MinValue;
-                byte b3 = (value & 32) > 0 ? byte.MaxValue : byte.MinValue;
-                byte b4 = (value & 16) > 0 ? byte.MaxValue : byte.MinValue;
-                byte b5 = (value & 8) > 0 ? byte.MaxValue : byte.MinValue;
-                byte b6 = (value & 4) > 0 ? byte.MaxValue : byte.MinValue;
-                byte b7 = (value & 2) > 0 ? byte.MaxValue : byte.MinValue;
-                byte b8 = (value & 1) > 0 ? byte.MaxValue : byte.MinValue;
-
-                byte newResult = result.MergePixelDataInByte(b1, b2, b3, b4, b5, b6, b7, b8);
-
-                Assert.That(newResult, Is.EqualTo(value), $"Merged Byte Run {i} is wrong. Expected {value}, Returned {newResult}");
-            }
-        }
-
-#endregion Tests
-
-        //########################################################################################
-
-        #region Old working Implementation
-
-        /// <summary>
-        /// Send a Bitmap as Byte Array to the Device
-        /// </summary>
-        /// <param name="image">Bitmap image to convert</param>
-        /// <param name="width"></param>
-        /// <param name="height"></param>
-        internal static byte[] SendBitmapToDevice(SKBitmap image, int width, int height)
-        {
-            List<byte> outputArray = new List<Byte>();
-
-            const int pixelPerByte = 8;
-            int maxX = Math.Min(width, image.Width);
-            int maxY = Math.Min(height, image.Height);
-
-            int colorBytesPerPixel = image.BytesPerPixel;
-            int stride = maxX * image.BytesPerPixel;
-            int deviceLineWithInByte = image.Width * colorBytesPerPixel;
-            int deviceStep = colorBytesPerPixel * pixelPerByte;
-
-            IntPtr scanLine = image.GetPixels();
-            byte[] line = new byte[stride];
-
-            for (int y = 0; y < height; y++)
-            {
-                byte[] outputLine = CloneWhiteScanLine(width/pixelPerByte);
-
-                if (y < maxY)
-                {
-                    Marshal.Copy(scanLine, line, 0, line.Length);
-
-                    for (int x = 0; x < deviceLineWithInByte; x += deviceStep)
-                    {
-                        outputLine[x / deviceStep] = GetDevicePixels(x, line);
-                    }
-
-                    scanLine += stride;
-                }
-
-                outputArray.AddRange(outputLine);
-            }
-
-            return outputArray.ToArray();
-        }
-
-        /// <summary>
-        /// Get the byte on the device for the selected pixels
-        /// </summary>
-        /// <param name="xPosition"></param>
-        /// <param name="line"></param>
-        /// <returns></returns>
-        private static byte GetDevicePixels(int xPosition, byte[] line)
-        {
-            byte[] pixels = new byte[8];
-            for (int i = 0; i < pixels.Length; i++)
-            {
-                pixels[i] = GetPixelFromArray(line, xPosition, i);
-            }
-
-            return MergePixelDataInByte(pixels);
-        }
-
-        /// <summary>
-        /// Get a empty line on the device
-        /// </summary>
-        /// <param name="inputDataStride"></param>
-        /// <returns></returns>
-        private static byte[] CloneWhiteScanLine(int inputDataStride)
-        {
-            return new byte[inputDataStride];
-        }
-
-        /// <summary>
-        /// Get Pixel from the byte array
-        /// </summary>
-        /// <param name="line"></param>
-        /// <param name="xPosition"></param>
-        /// <param name="pixel"></param>
-        /// <returns></returns>
-        private static byte GetPixelFromArray(byte[] line, int xPosition, int pixel)
-        {
-            int pixelWidth = 4 * pixel;
-
-            int colorB = xPosition + pixelWidth;
-            int colorG = xPosition + ++pixelWidth;
-            int colorR = xPosition + ++pixelWidth;
-
-            if (colorR >= line.Length)
-            {
-                return 0;
-            }
-
-            return ColorToByte(line[colorR], line[colorG], line[colorB]);
-        }
-
-        /// <summary>
-        /// Merge eight DataBytes into one Byte
-        /// </summary>
-        /// <param name="pixel"></param>
-        /// <returns></returns>
-        internal static byte MergePixelDataInByte(byte[] pixel)
-        {
-            const int bitStates = 2;
-            const int bitsInByte = 8;
-            int bitMoveLength = bitsInByte / 8;
-
-            byte output = 0;
-
-            for (int i = 0; i < pixel.Length; i++)
-            {
-                int moveFactor = bitsInByte - bitMoveLength * (i + 1);
-                byte mask = (byte)Math.Pow(bitStates, (bitsInByte - i) - bitMoveLength);
-                byte posValue = (byte)((byte)(byte.MinValue | (byte)(pixel[i] << moveFactor)) & mask);
-                output |= posValue;
-            }
-
-            return output;
-        }
-
-        /// <summary>
-        /// Convert a pixel to a DataByte
-        /// </summary>
-        /// <param name="r">Red color byte</param>
-        /// <param name="g">Green color byte</param>
-        /// <param name="b">Blue color byte</param>
-        /// <returns>Pixel converted to specific byte value for the hardware</returns>
-        private static byte ColorToByte(byte r, byte g, byte b)
-        {
-            if (r == g && r == b)
-            {
-                return (byte)(r < 128 ? 1 : 0);
-            }
-
-            return (byte)((r * 0.299 + g * 0.587 + b * 0.114 + .005) < 128 ? 1 : 0);
-        }
-
-        #endregion Old working Implementation
-
-        //########################################################################################
-
+        m_DataBuffer = [];
+
+        m_EPaperDisplayHardwareMock = new();
+        m_EPaperDisplayHardwareMock.Setup(e => e.BusyPin).Returns(PinValue.High);
+        m_EPaperDisplayHardwareMock.Setup(e => e.Write(It.IsAny<byte[]>())).Callback((byte[] b) => m_DataBuffer.AddRange(b));
+        m_EPaperDisplayHardwareMock.Setup(e => e.WriteByte(It.IsAny<byte>())).Callback((byte b) => m_DataBuffer.Add(b));
+        m_EPaperDisplayHardwareMock.Setup(e => e.Write(It.IsAny<MemoryStream>())).Callback((MemoryStream b) => m_DataBuffer.AddRange(b.ToArray()));
     }
+
+    #endregion Setup
+
+    #region Tests
+
+    [Test]
+    public void ConstructorTest()
+    {
+        using Epd7In5_V2 result = new();
+        result.Initialize(m_EPaperDisplayHardwareMock.Object);
+    }
+
+    [Test]
+    public void DisposeNoHardwareTest()
+    {
+        using Epd7In5_V2 result = new();
+        result.Initialize(m_EPaperDisplayHardwareMock.Object);
+    }
+
+    [Test]
+    public void DoubleDisposeTest()
+    {
+        Epd7In5_V2 result = new();
+        result.Initialize(m_EPaperDisplayHardwareMock.Object);
+        result.Dispose();
+        result.Dispose();
+    }
+
+    [Test]
+    public void FinalizerTest()
+    {
+        Epd7In5_V2 result = new();
+        result.Initialize(m_EPaperDisplayHardwareMock.Object);
+
+        Assert.That(result, Is.Not.Null, "Object should not be null");
+
+        // ReSharper disable once RedundantAssignment
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
+        result = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
+
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+    }
+
+    [Test]
+    public void FinalizerNoHardwareTest()
+    {
+        Epd7In5_V2 result = new();
+
+        Assert.That(result, Is.Not.Null, "Object should not be null");
+
+        // ReSharper disable once RedundantAssignment
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
+        result = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
+
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+    }
+
+    [Test]
+    public void PowerOnTest()
+    {
+        using Epd7In5_V2 result = new();
+        result.Initialize(m_EPaperDisplayHardwareMock.Object);
+
+        m_DataBuffer.Clear();
+
+        result.PowerOn();
+
+        List<byte> validBuffer =
+        [
+            (byte) Epd7In5_V2Commands.PowerOn,
+            (byte) Epd7In5_V2Commands.GetStatus
+        ];
+        Assert.That(m_DataBuffer, Is.EqualTo(validBuffer), "Command Data Sequence is wrong");
+    }
+
+
+    [Test]
+    public void PowerOffTest()
+    {
+        using Epd7In5_V2 result = new();
+        result.Initialize(m_EPaperDisplayHardwareMock.Object);
+
+        m_DataBuffer.Clear();
+
+        result.PowerOff();
+
+        List<byte> validBuffer =
+        [
+            (byte) Epd7In5_V2Commands.PowerOff,
+            (byte) Epd7In5_V2Commands.GetStatus
+        ];
+        Assert.That(m_DataBuffer, Is.EqualTo(validBuffer), "Command Data Sequence is wrong");
+    }
+
+    [Test]
+    public void SleepTest()
+    {
+        using Epd7In5_V2 result = new();
+        result.Initialize(m_EPaperDisplayHardwareMock.Object);
+
+        m_DataBuffer.Clear();
+
+        result.Sleep();
+
+        List<byte> validBuffer =
+        [
+            (byte) Epd7In5_V2Commands.PowerOff,
+            (byte) Epd7In5_V2Commands.GetStatus,
+            (byte) Epd7In5_V2Commands.DeepSleep,
+            0xA5
+        ];
+        Assert.That(m_DataBuffer, Is.EqualTo(validBuffer), "Command Data Sequence is wrong");
+    }
+
+    [Test]
+    public void ClearTest()
+    {
+        using Epd7In5_V2 result = new();
+        result.Initialize(m_EPaperDisplayHardwareMock.Object);
+
+        m_DataBuffer.Clear();
+
+        result.Clear();
+
+        const int pixelPerByte = 8;
+        int displayBytes = result.Width / pixelPerByte * result.Height;
+
+        const byte white = 0x00;
+        byte eightWhitePixel = result.MergePixelDataInByte(white, white, white, white, white, white, white, white);
+
+        List<byte> validBuffer = [(byte)Epd7In5_V2Commands.DataStartTransmission1];
+
+        for (int i = 0; i < displayBytes; i++)
+            validBuffer.Add(eightWhitePixel);
+
+        validBuffer.Add((byte)Epd7In5_V2Commands.DataStartTransmission2);
+
+        for (int i = 0; i < displayBytes; i++)
+            validBuffer.Add(eightWhitePixel);
+
+        validBuffer.Add((byte)Epd7In5_V2Commands.DisplayRefresh);
+        validBuffer.Add((byte)Epd7In5_V2Commands.GetStatus);
+
+        Assert.That(m_DataBuffer, Is.EqualTo(validBuffer), "Command Data Sequence is wrong");
+    }
+
+
+    [Test]
+    public void ClearBlackTest()
+    {
+        using Epd7In5_V2 result = new();
+        result.Initialize(m_EPaperDisplayHardwareMock.Object);
+
+        m_DataBuffer.Clear();
+
+        result.ClearBlack();
+
+        const int pixelPerByte = 8;
+        int displayBytes = result.Width / pixelPerByte * result.Height;
+
+        const byte black = 0x01;
+        byte eightBlackPixel = result.MergePixelDataInByte(black, black, black, black, black, black, black, black);
+
+        List<byte> validBuffer = [(byte)Epd7In5_V2Commands.DataStartTransmission2];
+
+        for (int i = 0; i < displayBytes; i++)
+            validBuffer.Add(eightBlackPixel);
+
+        validBuffer.Add((byte)Epd7In5_V2Commands.DisplayRefresh);
+        validBuffer.Add((byte)Epd7In5_V2Commands.GetStatus);
+
+        Assert.That(m_DataBuffer, Is.EqualTo(validBuffer), "Command Data Sequence is wrong");
+    }
+
+    [Test]
+    public void DisplayImageTest()
+    {
+        using Epd7In5_V2 result = new();
+        result.Initialize(m_EPaperDisplayHardwareMock.Object);
+
+        SKBitmap image = CommonTestData.CreateSampleBitmap(result.Width, result.Height);
+
+        List<byte> validBuffer = [(byte)Epd7In5_V2Commands.DataStartTransmission2];
+
+        m_DataBuffer.Clear();
+
+        validBuffer.AddRange(SendBitmapToDevice(image, result.Width, result.Height));
+        validBuffer.Add((byte)Epd7In5_V2Commands.DisplayRefresh);
+        validBuffer.Add((byte)Epd7In5_V2Commands.GetStatus);
+
+        m_DataBuffer.Clear();
+
+        SKBitmapLoader bitmapEPaperDisplay = new(result);
+        bitmapEPaperDisplay.DisplayImage(image);
+
+        Assert.That(m_DataBuffer.Count, Is.EqualTo(validBuffer.Count), "Data Length is wrong");
+        Assert.That(m_DataBuffer, Is.EqualTo(validBuffer), "Command Data Sequence is wrong");
+    }
+
+    [Test]
+    public void DisplayImageSmallTest()
+    {
+        using Epd7In5_V2 result = new();
+        result.Initialize(m_EPaperDisplayHardwareMock.Object);
+
+        SKBitmap image = CommonTestData.CreateSampleBitmap(result.Width / 2, result.Height / 2);
+
+        List<byte> validBuffer = [(byte)Epd7In5_V2Commands.DataStartTransmission2];
+
+        m_DataBuffer.Clear();
+
+        validBuffer.AddRange(SendBitmapToDevice(image, result.Width, result.Height));
+        validBuffer.Add((byte)Epd7In5_V2Commands.DisplayRefresh);
+        validBuffer.Add((byte)Epd7In5_V2Commands.GetStatus);
+
+        m_DataBuffer.Clear();
+
+        SKBitmapLoader bitmapEPaperDisplay = new(result);
+        bitmapEPaperDisplay.DisplayImage(image);
+
+        Assert.That(m_DataBuffer.Count, Is.EqualTo(validBuffer.Count), "Data Length is wrong");
+        Assert.That(m_DataBuffer, Is.EqualTo(validBuffer), "Command Data Sequence is wrong");
+    }
+
+    [Test]
+    public void WakeUpTest()
+    {
+        using Epd7In5_V2 result = new();
+        result.Initialize(m_EPaperDisplayHardwareMock.Object);
+
+        m_DataBuffer.Clear();
+
+        result.WakeUp();
+
+        List<byte> validBuffer =
+        [
+            (byte) Epd7In5_V2Commands.BoosterSoftStart,
+            0x17,
+            0x17,
+            0x27,
+            0x17,
+            (byte) Epd7In5_V2Commands.PowerSetting,
+            0x07,
+            0x17,
+            0x3f,
+            0x3f,
+            (byte) Epd7In5_V2Commands.PowerOn,
+            (byte) Epd7In5_V2Commands.GetStatus,
+            (byte) Epd7In5_V2Commands.PanelSetting,
+            0x1F,
+            (byte) Epd7In5_V2Commands.TconResolution,
+            0x03,
+            0x20,
+            0x01,
+            0xe0,
+            (byte) Epd7In5_V2Commands.DualSpi,
+            0x00,
+            (byte) Epd7In5_V2Commands.VcomAndDataIntervalSetting,
+            0x10,
+            0x07,
+            (byte) Epd7In5_V2Commands.TconSetting,
+            0x22
+        ];
+
+        Assert.That(m_DataBuffer, Is.EqualTo(validBuffer), "Command Data Sequence is wrong");
+    }
+
+    [Test]
+    public void TestMergePixelDataInByte()
+    {
+        using Epd7In5_V2 result = new();
+
+        Random random = new();
+        for (int i = 0; i < 200; i++)
+        {
+            int value = random.Next(0, byte.MaxValue);
+            byte b1 = (value & 128) > 0 ? byte.MaxValue : byte.MinValue;
+            byte b2 = (value & 64) > 0 ? byte.MaxValue : byte.MinValue;
+            byte b3 = (value & 32) > 0 ? byte.MaxValue : byte.MinValue;
+            byte b4 = (value & 16) > 0 ? byte.MaxValue : byte.MinValue;
+            byte b5 = (value & 8) > 0 ? byte.MaxValue : byte.MinValue;
+            byte b6 = (value & 4) > 0 ? byte.MaxValue : byte.MinValue;
+            byte b7 = (value & 2) > 0 ? byte.MaxValue : byte.MinValue;
+            byte b8 = (value & 1) > 0 ? byte.MaxValue : byte.MinValue;
+
+            byte newResult = result.MergePixelDataInByte(b1, b2, b3, b4, b5, b6, b7, b8);
+
+            Assert.That(newResult, Is.EqualTo(value), $"Merged Byte Run {i} is wrong. Expected {value}, Returned {newResult}");
+        }
+    }
+
+    #endregion Tests
+
+    #region Old working Implementation
+
+    /// <summary> Send a Bitmap as Byte Array to the Device </summary>
+    /// <param name="image">Bitmap image to convert</param>
+    /// <param name="width"></param>
+    /// <param name="height"></param>
+    internal static byte[] SendBitmapToDevice(SKBitmap image, int width, int height)
+    {
+        List<byte> outputArray = [];
+
+        const int pixelPerByte = 8;
+        int maxX = Math.Min(width, image.Width);
+        int maxY = Math.Min(height, image.Height);
+
+        int colorBytesPerPixel = image.BytesPerPixel;
+        int stride = maxX * image.BytesPerPixel;
+        int deviceLineWithInByte = image.Width * colorBytesPerPixel;
+        int deviceStep = colorBytesPerPixel * pixelPerByte;
+
+        IntPtr scanLine = image.GetPixels();
+        byte[] line = new byte[stride];
+
+        for (int y = 0; y < height; y++)
+        {
+            byte[] outputLine = CloneWhiteScanLine(width / pixelPerByte);
+
+            if (y < maxY)
+            {
+                Marshal.Copy(scanLine, line, 0, line.Length);
+
+                for (int x = 0; x < deviceLineWithInByte; x += deviceStep)
+                    outputLine[x / deviceStep] = GetDevicePixels(x, line);
+
+                scanLine += stride;
+            }
+
+            outputArray.AddRange(outputLine);
+        }
+
+        return outputArray.ToArray();
+    }
+
+    /// <summary> Get the byte on the device for the selected pixels </summary>
+    /// <param name="xPosition"></param>
+    /// <param name="line"></param>
+    /// <returns></returns>
+    private static byte GetDevicePixels(int xPosition, byte[] line)
+    {
+        byte[] pixels = new byte[8];
+        for (int i = 0; i < pixels.Length; i++)
+            pixels[i] = GetPixelFromArray(line, xPosition, i);
+
+        return MergePixelDataInByte(pixels);
+    }
+
+    /// <summary> Get an empty line on the device </summary>
+    /// <param name="inputDataStride"></param>
+    /// <returns></returns>
+    private static byte[] CloneWhiteScanLine(int inputDataStride) => new byte[inputDataStride];
+
+    /// <summary> Get Pixel from the byte array </summary>
+    /// <param name="line"></param>
+    /// <param name="xPosition"></param>
+    /// <param name="pixel"></param>
+    /// <returns></returns>
+    private static byte GetPixelFromArray(byte[] line, int xPosition, int pixel)
+    {
+        int pixelWidth = 4 * pixel;
+
+        int colorB = xPosition + pixelWidth;
+        int colorG = xPosition + ++pixelWidth;
+        int colorR = xPosition + ++pixelWidth;
+
+        return colorR >= line.Length ? (byte)0 : ColorToByte(line[colorR], line[colorG], line[colorB]);
+    }
+
+    /// <summary> Merge eight DataBytes into one Byte </summary>
+    /// <param name="pixel"></param>
+    /// <returns></returns>
+    internal static byte MergePixelDataInByte(byte[] pixel)
+    {
+        const int bitStates = 2;
+        const int bitsInByte = 8;
+        int bitMoveLength = bitsInByte / 8;
+
+        byte output = 0;
+
+        for (int i = 0; i < pixel.Length; i++)
+        {
+            int moveFactor = bitsInByte - bitMoveLength * (i + 1);
+            byte mask = (byte)Math.Pow(bitStates, (bitsInByte - i) - bitMoveLength);
+            byte posValue = (byte)((byte)(byte.MinValue | (byte)(pixel[i] << moveFactor)) & mask);
+            output |= posValue;
+        }
+
+        return output;
+    }
+
+    /// <summary> Convert a pixel to a DataByte </summary>
+    /// <param name="r">Red color byte</param>
+    /// <param name="g">Green color byte</param>
+    /// <param name="b">Blue color byte</param>
+    /// <returns>Pixel converted to specific byte value for the hardware</returns>
+    private static byte ColorToByte(byte r, byte g, byte b)
+    {
+        if (r == g && r == b)
+            return (byte)(r < 128 ? 1 : 0);
+
+        return (byte)((r * 0.299 + g * 0.587 + b * 0.114 + .005) < 128 ? 1 : 0);
+    }
+
+    #endregion Old working Implementation
 }

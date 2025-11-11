@@ -23,41 +23,24 @@
 // --------------------------------------------------------------------------------------------------------------------
 #endregion Copyright
 
-#region Usings
-
 using Waveshare.Devices;
 using Waveshare.Image;
-using Waveshare.Interfaces;
-using Waveshare.Interfaces.Internal;
 
-#endregion Usings
+namespace Waveshare;
 
-namespace Waveshare
+/// <summary> E-Paper Display Factory </summary>
+public static class EPaperDisplay
 {
-    /// <summary>
-    /// E-Paper Display Factory
-    /// </summary>
-    public static class EPaperDisplay
+    #region Public Methods
+
+    /// <summary> Create an instance of an E-Paper Display for System.Drawing.Bitmap </summary>
+    /// <param name="displayType"></param>
+    /// <returns></returns>
+    public static IEPaperDisplayBitmap? Create(EPaperDisplayType displayType)
     {
-
-        //########################################################################################
-
-        #region Public Methods
-
-        /// <summary>
-        /// Create a instance of a E-Paper Display for System.Drawing.Bitmap
-        /// </summary>
-        /// <param name="displayType"></param>
-        /// <returns></returns>
-        public static IEPaperDisplayBitmap? Create(EPaperDisplayType displayType)
-        {
-            IEPaperDisplayInternal? ePaperDisplay = EPaperDisplayRaw.CreateEPaperDisplay(displayType);
-            return ePaperDisplay != null ? new BitmapLoader(ePaperDisplay) : null;
-        }
-
-        #endregion Public Methods
-
-        //########################################################################################
-
+        IEPaperDisplayInternal? ePaperDisplay = EPaperDisplayRaw.CreateEPaperDisplay(displayType);
+        return ePaperDisplay != null ? new BitmapLoader(ePaperDisplay) : null;
     }
+
+    #endregion Public Methods
 }

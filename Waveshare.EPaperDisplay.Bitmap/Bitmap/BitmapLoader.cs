@@ -23,57 +23,37 @@
 // --------------------------------------------------------------------------------------------------------------------
 #endregion Copyright
 
-#region Usings
-
 using System;
-using Waveshare.Image;
-using Waveshare.Interfaces;
-using Waveshare.Interfaces.Internal;
+using System.Drawing;
 
-#endregion Usings
+namespace Waveshare.Image;
 
-namespace Waveshare.Image
+/// <summary> System.Drawing.Bitmap Image Loader </summary>
+internal class BitmapLoader : EPaperImageBase<Bitmap>, IEPaperDisplayBitmap
 {
-    /// <summary>
-    /// System.Drawing.Bitmap Image Loader
-    /// </summary>
-    internal class BitmapLoader : EPaperImageBase<System.Drawing.Bitmap>, IEPaperDisplayBitmap
+    #region Constructor / Dispose / Finalizer
+
+    /// <summary> Constructor </summary>
+    /// <param name="ePaperDisplay"></param>
+    public BitmapLoader(IEPaperDisplayInternal ePaperDisplay) : base(ePaperDisplay)
     {
 
-        //########################################################################################
-
-        #region Constructor / Dispose / Finalizer
-
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="ePaperDisplay"></param>
-        public BitmapLoader(IEPaperDisplayInternal ePaperDisplay) : base(ePaperDisplay)
-        {
-        }
-
-        #endregion Constructor / Dispose / Finalizer
-
-        //########################################################################################
-
-        #region Protected Methods
-
-        /// <summary>
-        /// Load the System.Drawing.Bitmap into a RawImage
-        /// </summary>
-        /// <param name="image"></param>
-        /// <returns></returns>
-        protected override IRawImage LoadImage(System.Drawing.Bitmap image)
-        {
-            int maxWidth = Math.Min(Width, image.Width);
-            int maxHeight = Math.Min(Height, image.Height);
-
-            return new BitmapRawImage(image, maxWidth, maxHeight);
-        }
-
-        #endregion Protected Methods
-
-        //########################################################################################
-
     }
+
+    #endregion Constructor / Dispose / Finalizer
+
+    #region Protected Methods
+
+    /// <summary> Load the System.Drawing.Bitmap into a RawImage </summary>
+    /// <param name="image"></param>
+    /// <returns></returns>
+    protected override IRawImage LoadImage(Bitmap image)
+    {
+        int maxWidth = Math.Min(Width, image.Width);
+        int maxHeight = Math.Min(Height, image.Height);
+
+        return new BitmapRawImage(image, maxWidth, maxHeight);
+    }
+
+    #endregion Protected Methods
 }

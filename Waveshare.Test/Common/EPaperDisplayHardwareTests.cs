@@ -23,75 +23,67 @@
 // --------------------------------------------------------------------------------------------------------------------
 #endregion Copyright
 
-#region Usings
-
-using Moq;
-using NUnit.Framework;
 using System.Device.Spi;
 using Waveshare.Common;
 
-#endregion Usings
+namespace Waveshare.Test.Common;
 
-namespace Waveshare.Test.Common
+public class EPaperDisplayHardwareTests
 {
-    public class EPaperDisplayHardwareTests
+    private static byte s_DataByte;
+
+    [Test]
+    public void DisposeTest()
     {
+        using EPaperDisplayHardware result = CreateEPaperDisplayHardware();
 
-        private static byte s_DataByte;
+        Assert.That(result, Is.Not.Null, "Object should not be null");
+    }
 
-        [Test]
-        public void DisposeTest()
+    [Test]
+    public void ResetPinTest()
+    {
+        Assert.Inconclusive("GpiController can not be Mocked, currently not testable :-(");
+    }
+
+    [Test]
+    public void BusyPinTest()
+    {
+        Assert.Inconclusive("GpiController can not be Mocked, currently not testable :-(");
+    }
+
+    [Test]
+    public void SpiCsPinTest()
+    {
+        Assert.Inconclusive("GpiController can not be Mocked, currently not testable :-(");
+    }
+
+    [Test]
+    public void SpiDcPinTest()
+    {
+        Assert.Inconclusive("GpiController can not be Mocked, currently not testable :-(");
+    }
+
+    [Test]
+    public void WriteDataTest()
+    {
+        using EPaperDisplayHardware result = CreateEPaperDisplayHardware();
+
+        for (byte b = 0; b < byte.MaxValue; b++)
         {
-            using EPaperDisplayHardware result = CreateEPaperDisplayHardware();
-
-            Assert.That(result, Is.Not.Null, "Object should not be null");
+            result.WriteByte(b);
+            Assert.That(s_DataByte, Is.EqualTo(b), $"WriteByte failed with {b}");
         }
+    }
 
-        [Test]
-        public void ResetPinTest()
-        {
-            Assert.Inconclusive("GpiController can not be Mocked, currently not testable :-(");
-        }
+    private static EPaperDisplayHardware CreateEPaperDisplayHardware()
+    {
+        Mock<SpiDevice> spiMock = new();
+        spiMock.Setup(s => s.WriteByte(It.IsAny<byte>())).Callback((byte b) => s_DataByte = b);
 
-        [Test]
-        public void BusyPinTest()
-        {
-            Assert.Inconclusive("GpiController can not be Mocked, currently not testable :-(");
-        }
+        //GpiController can not be Mocked, currently not testable :-(
 
-        [Test]
-        public void SpiCsPinTest()
-        {
-            Assert.Inconclusive("GpiController can not be Mocked, currently not testable :-(");
-        }
-
-        [Test]
-        public void SpiDcPinTest()
-        {
-            Assert.Inconclusive("GpiController can not be Mocked, currently not testable :-(");
-        }
-
-        [Test]
-        public void WriteDataTest()
-        {
-            using EPaperDisplayHardware result = CreateEPaperDisplayHardware();
-
-            for (byte b = 0; b < byte.MaxValue; b++)
-            {
-                result.WriteByte(b);
-                Assert.That(s_DataByte, Is.EqualTo(b), $"WriteByte failed with {b}");
-            }
-        }
-
-        private static EPaperDisplayHardware CreateEPaperDisplayHardware()
-        {
-            Mock<SpiDevice> spiMock = new Mock<SpiDevice>();
-            spiMock.Setup(s => s.WriteByte(It.IsAny<byte>())).Callback((byte b) => s_DataByte = b);
-
-            //GpiController can not be Mocked, currently not testable :-(
-
-            EPaperDisplayHardware result = new EPaperDisplayHardware(spiMock.Object, null);
-            return result;
-        }
+        EPaperDisplayHardware result = new(spiMock.Object, null);
+        return result;
     }
 }

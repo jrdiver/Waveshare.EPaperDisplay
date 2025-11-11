@@ -23,87 +23,77 @@
 // --------------------------------------------------------------------------------------------------------------------
 #endregion Copyright
 
-#region Usings
-
-using Moq;
-using NUnit.Framework;
-using System;
-using System.Device.Gpio;
 using Waveshare.Devices;
 using Waveshare.Interfaces;
-using Waveshare.Interfaces.Internal;
 
-#endregion Usings
+namespace Waveshare.Test;
 
-namespace Waveshare.Test
+public class EPaperDisplayTests
 {
-    public class EPaperDisplayTests
+    [Test]
+    public void CreateNoneTest()
     {
-        [Test]
-        public void CreateNoneTest()
-        {
-            using IEPaperDisplaySKBitmap result = EPaperDisplay.Create(EPaperDisplayType.None);
-            Assert.That(result, Is.Null, $"Enum Value {EPaperDisplayType.None} should not return a object");
-        }
+        using IEPaperDisplaySKBitmap result = EPaperDisplay.Create(EPaperDisplayType.None);
+        Assert.That(result, Is.Null, $"Enum Value {EPaperDisplayType.None} should not return a object");
+    }
 
-        [Test]
-        public void CreateWaveShare7In5BcTest()
-        {
-            Mock<IEPaperDisplayHardware> ePaperDisplayHardwareMock = new Mock<IEPaperDisplayHardware>();
-            ePaperDisplayHardwareMock.SetupGet(e => e.BusyPin).Returns(PinValue.High);
-            EPaperDisplayRaw.EPaperDisplayHardware = new Lazy<IEPaperDisplayHardware>(() => ePaperDisplayHardwareMock.Object);
+    [Test]
+    public void CreateWaveShare7In5BcTest()
+    {
+        Mock<IEPaperDisplayHardware> ePaperDisplayHardwareMock = new();
+        ePaperDisplayHardwareMock.SetupGet(e => e.BusyPin).Returns(PinValue.High);
+        EPaperDisplayRaw.EPaperDisplayHardware = new(() => ePaperDisplayHardwareMock.Object);
 
-            using IEPaperDisplaySKBitmap result = EPaperDisplay.Create(EPaperDisplayType.WaveShare7In5Bc);
-            Assert.That(result, Is.Not.Null, $"Enum Value {EPaperDisplayType.WaveShare7In5Bc} should return a object");
-        }
+        using IEPaperDisplaySKBitmap result = EPaperDisplay.Create(EPaperDisplayType.WaveShare7In5Bc);
+        Assert.That(result, Is.Not.Null, $"Enum Value {EPaperDisplayType.WaveShare7In5Bc} should return a object");
+    }
 
-        [Test]
-        public void CreateWaveShare7In5_V2Test()
-        {
-            Mock<IEPaperDisplayHardware> ePaperDisplayHardwareMock = new Mock<IEPaperDisplayHardware>();
-            ePaperDisplayHardwareMock.SetupGet(e => e.BusyPin).Returns(PinValue.High);
-            EPaperDisplayRaw.EPaperDisplayHardware = new Lazy<IEPaperDisplayHardware>(() => ePaperDisplayHardwareMock.Object);
+    [Test]
+    public void CreateWaveShare7In5_V2Test()
+    {
+        Mock<IEPaperDisplayHardware> ePaperDisplayHardwareMock = new();
+        ePaperDisplayHardwareMock.SetupGet(e => e.BusyPin).Returns(PinValue.High);
+        EPaperDisplayRaw.EPaperDisplayHardware = new(() => ePaperDisplayHardwareMock.Object);
 
-            using IEPaperDisplaySKBitmap result = EPaperDisplay.Create(EPaperDisplayType.WaveShare7In5_V2);
-            Assert.That(result, Is.Not.Null, $"Enum Value {EPaperDisplayType.WaveShare7In5_V2} should return a object");
-        }
+        using IEPaperDisplaySKBitmap result = EPaperDisplay.Create(EPaperDisplayType.WaveShare7In5_V2);
+        Assert.That(result, Is.Not.Null, $"Enum Value {EPaperDisplayType.WaveShare7In5_V2} should return a object");
+    }
 
-        [Test]
-        public void CreateWaveShare7In5b_V2Test()
-        {
-            Mock<IEPaperDisplayHardware> ePaperDisplayHardwareMock = new Mock<IEPaperDisplayHardware>();
-            ePaperDisplayHardwareMock.SetupGet(e => e.BusyPin).Returns(PinValue.High);
-            EPaperDisplayRaw.EPaperDisplayHardware = new Lazy<IEPaperDisplayHardware>(() => ePaperDisplayHardwareMock.Object);
+    [Test]
+    public void CreateWaveShare7In5b_V2Test()
+    {
+        Mock<IEPaperDisplayHardware> ePaperDisplayHardwareMock = new();
+        ePaperDisplayHardwareMock.SetupGet(e => e.BusyPin).Returns(PinValue.High);
+        EPaperDisplayRaw.EPaperDisplayHardware = new(() => ePaperDisplayHardwareMock.Object);
 
-            using IEPaperDisplaySKBitmap result = EPaperDisplay.Create(EPaperDisplayType.WaveShare7In5b_V2);
-            Assert.That(result, Is.Not.Null, $"Enum Value {EPaperDisplayType.WaveShare7In5b_V2} should return a object");
-        }
+        using IEPaperDisplaySKBitmap result = EPaperDisplay.Create(EPaperDisplayType.WaveShare7In5b_V2);
+        Assert.That(result, Is.Not.Null, $"Enum Value {EPaperDisplayType.WaveShare7In5b_V2} should return a object");
+    }
 
-        [Test]
-        public void CreateWaveShareEpd5in65fTest()
-        {
-            Mock<IEPaperDisplayHardware> ePaperDisplayHardwareMock = new Mock<IEPaperDisplayHardware>();
-            ePaperDisplayHardwareMock.SetupGet(e => e.BusyPin).Returns(PinValue.High);
-            EPaperDisplayRaw.EPaperDisplayHardware = new Lazy<IEPaperDisplayHardware>(() => ePaperDisplayHardwareMock.Object);
+    [Test]
+    public void CreateWaveShareEpd5in65fTest()
+    {
+        Mock<IEPaperDisplayHardware> ePaperDisplayHardwareMock = new();
+        ePaperDisplayHardwareMock.SetupGet(e => e.BusyPin).Returns(PinValue.High);
+        EPaperDisplayRaw.EPaperDisplayHardware = new(() => ePaperDisplayHardwareMock.Object);
 
-            using IEPaperDisplaySKBitmap result = EPaperDisplay.Create(EPaperDisplayType.WaveShare5In65f);
-            Assert.That(result, Is.Not.Null, $"Enum Value {EPaperDisplayType.WaveShare5In65f} should return a object");
-        }
+        using IEPaperDisplaySKBitmap result = EPaperDisplay.Create(EPaperDisplayType.WaveShare5In65f);
+        Assert.That(result, Is.Not.Null, $"Enum Value {EPaperDisplayType.WaveShare5In65f} should return a object");
+    }
 
-        [Test]
-        public void GetEPaperDisplayHardwareTest()
-        {
-            Lazy<IEPaperDisplayHardware> lazyHardware = EPaperDisplayRaw.EPaperDisplayHardware;
-            Assert.That(lazyHardware, Is.Not.Null);
+    [Test]
+    public void GetEPaperDisplayHardwareTest()
+    {
+        Lazy<IEPaperDisplayHardware> lazyHardware = EPaperDisplayRaw.EPaperDisplayHardware;
+        Assert.That(lazyHardware, Is.Not.Null);
 
-            using IEPaperDisplayHardware result = lazyHardware.Value;
-            Assert.That(result, Is.Not.Null, "EPaperDisplayHardware should not return null");
+        using IEPaperDisplayHardware result = lazyHardware.Value;
+        Assert.That(result, Is.Not.Null, "EPaperDisplayHardware should not return null");
 
-            Mock<IEPaperDisplayHardware> ePaperDisplayHardwareMock = new Mock<IEPaperDisplayHardware>();
-            EPaperDisplayRaw.EPaperDisplayHardware = new Lazy<IEPaperDisplayHardware>(() => ePaperDisplayHardwareMock.Object);
+        Mock<IEPaperDisplayHardware> ePaperDisplayHardwareMock = new();
+        EPaperDisplayRaw.EPaperDisplayHardware = new(() => ePaperDisplayHardwareMock.Object);
 
-            using IEPaperDisplayHardware result2 = EPaperDisplayRaw.EPaperDisplayHardware.Value;
-            Assert.That(result2, Is.Not.Null, "EPaperDisplayHardware should not return null");
-        }
+        using IEPaperDisplayHardware result2 = EPaperDisplayRaw.EPaperDisplayHardware.Value;
+        Assert.That(result2, Is.Not.Null, "EPaperDisplayHardware should not return null");
     }
 }

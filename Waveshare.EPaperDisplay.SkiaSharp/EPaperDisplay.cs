@@ -27,8 +27,6 @@
 
 using Waveshare.Devices;
 using Waveshare.Image;
-using Waveshare.Interfaces;
-using Waveshare.Interfaces.Internal;
 
 #endregion Usings
 

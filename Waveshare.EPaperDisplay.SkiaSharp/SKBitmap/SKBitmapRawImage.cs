@@ -23,6 +23,8 @@
 // --------------------------------------------------------------------------------------------------------------------
 #endregion Copyright
 
+using SkiaSharp;
+
 namespace Waveshare.Image;
 
 /// <summary> Wrapper for a SKBitmap into a RAW Image for the E-Paper Display </summary>
@@ -35,7 +37,7 @@ internal class SKBitmapRawImage : IRawImage
     private IntPtr m_ScanLine;
 
     /// <summary> The SKBitmap used for the ScanLine </summary>
-    private SkiaSharp.SKBitmap? Bitmap { get; set; }
+    private SKBitmap? Bitmap { get; set; }
 
     /// <summary> Width of the Image or Device Width </summary>
     public int Width => Bitmap?.Width ?? 0;
@@ -67,7 +69,7 @@ internal class SKBitmapRawImage : IRawImage
 
     /// <summary> Constructor with the SKBitmap </summary>
     /// <param name="bitmap"></param>
-    public SKBitmapRawImage(SkiaSharp.SKBitmap bitmap) => Bitmap = bitmap;
+    public SKBitmapRawImage(SKBitmap bitmap) => Bitmap = bitmap;
 
     /// <summary> Dispose </summary>
     public void Dispose()

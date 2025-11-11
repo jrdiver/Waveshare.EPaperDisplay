@@ -23,72 +23,45 @@
 // --------------------------------------------------------------------------------------------------------------------
 #endregion Copyright
 
-#region Usings
+namespace Waveshare.Test.Devices;
 
-using SkiaSharp;
-using System.Drawing;
-using System.Drawing.Imaging;
-
-#endregion Usings
-
-namespace Waveshare.Test.Devices
+/// <summary> Helper Class to generate TestData for the UnitTests </summary>
+internal class CommonTestData
 {
-    /// <summary>
-    /// Helper Class to generate TestData for the UnitTests
-    /// </summary>
-    internal class CommonTestData
+    #region Public Methods
+
+    /// <summary> Create a Sample Bitmap </summary>
+    /// <param name="width"></param>
+    /// <param name="height"></param>
+    /// <returns></returns>
+    public static SKBitmap CreateSampleBitmap(int width, int height)
     {
+        SKBitmap image = new(new(width, height, SKColorType.Bgra8888));
 
-        //########################################################################################
-
-        #region Public Methods
-
-        /// <summary>
-        /// Create a Sample Bitmap
-        /// </summary>
-        /// <param name="width"></param>
-        /// <param name="height"></param>
-        /// <returns></returns>
-        public static SKBitmap CreateSampleBitmap(int width, int height)
+        for (int y = 0; y < image.Height; y++)
         {
-            SKBitmap image = new SKBitmap(new SkiaSharp.SKImageInfo(width, height, SKColorType.Bgra8888));
-
-            for (int y = 0; y < image.Height; y++)
+            for (int x = 0; x < image.Width; x++)
             {
-                for (int x = 0; x < image.Width; x++)
-                {
-                    SKColor color = SKColors.White;
+                SKColor color = SKColors.White;
 
-                    if (x % 2 == 0)
-                    {
-                        color = SKColors.Black;
-                    }
+                if (x % 2 == 0)
+                    color = SKColors.Black;
 
-                    if (x % 3 == 0)
-                    {
-                        color = SKColors.Red;
-                    }
+                if (x % 3 == 0)
+                    color = SKColors.Red;
 
-                    if (x % 4 == 0)
-                    {
-                        color = SKColors.Gray;
-                    }
+                if (x % 4 == 0)
+                    color = SKColors.Gray;
 
-                    if (x % 5 == 0)
-                    {
-                        color = new SKColor(255, 50, 0, 0);
-                    }
+                if (x % 5 == 0)
+                    color = new(255, 50, 0, 0);
 
-                    image.SetPixel(x, y, color);
-                }
+                image.SetPixel(x, y, color);
             }
-
-            return image;
         }
 
-        #endregion Public Methods
-
-        //########################################################################################
-
+        return image;
     }
+
+    #endregion Public Methods
 }

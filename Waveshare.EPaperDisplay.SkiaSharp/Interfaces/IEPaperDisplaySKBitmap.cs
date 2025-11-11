@@ -23,9 +23,11 @@
 // --------------------------------------------------------------------------------------------------------------------
 #endregion Copyright
 
+using SkiaSharp;
+
 namespace Waveshare.Interfaces;
 
 /// <summary> Interface for EPaperDisplays with SkiaSharp SKBitmap </summary>
-public interface IEPaperDisplaySKBitmap : IEPaperDisplayImage<SkiaSharp.SKBitmap>
+public interface IEPaperDisplaySKBitmap : IEPaperDisplayImage<SKBitmap>
 {
 }
