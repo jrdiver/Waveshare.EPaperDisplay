@@ -44,7 +44,10 @@ internal interface IEPaperDisplayInternal : IEPaperDisplay
     /// <summary> Display an Image on the Display </summary>
     /// <param name="rawImage">Bitmap that should be displayed</param>
     /// <param name="dithering">Use Dithering to display the image</param>
-    void DisplayImage(IRawImage rawImage, bool dithering);
+    /// <param name="partialRefresh">Enable Refreshing only part of the display.</param>
+    /// <param name="x">Leftmost coordinate for partial refresh</param> 
+    /// <param name="y">Uppermost coordinate for partial refresh </param>
+    void DisplayImage(IRawImage rawImage, bool dithering, bool partialRefresh = false, int x = 0, int y = 0);
 
     /// <summary> Gets the index for the supported color closest to a color </summary>
     /// <param name="color">Color to look up</param>

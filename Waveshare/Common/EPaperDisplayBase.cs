@@ -42,10 +42,10 @@ internal abstract class EPaperDisplayBase : IEPaperDisplayInternal
     #region Fields
 
     /// <summary> Buffered Display Writer </summary>
-    private IEPaperDisplayWriter? m_DisplayWriter;
+    private IEPaperDisplayWriter? mDisplayWriter;
 
     /// <summary> Has class been disposed </summary>
-    private bool m_Disposed;
+    private bool mDisposed;
 
     #endregion Fields
 
@@ -73,7 +73,7 @@ internal abstract class EPaperDisplayBase : IEPaperDisplayInternal
     protected bool DisplayIsSleeping { get; set; }
 
     /// <summary> Display Writer assigned to the device </summary>
-    protected IEPaperDisplayWriter DisplayWriter => m_DisplayWriter ??= GetDisplayWriter();
+    protected IEPaperDisplayWriter DisplayWriter => mDisplayWriter ??= GetDisplayWriter();
 
     /// <summary> Pixels per Byte on the Device </summary>
     public abstract int PixelPerByte { get; }
@@ -91,7 +91,7 @@ internal abstract class EPaperDisplayBase : IEPaperDisplayInternal
     protected abstract byte StopDataTransmissionCommand { get; }
 
     /// <summary> Display DeepSleep Command </summary>
-    protected abstract byte DeepSleepComand { get; }
+    protected abstract byte DeepSleepCommand { get; }
 
     #endregion Properties
 
@@ -111,16 +111,16 @@ internal abstract class EPaperDisplayBase : IEPaperDisplayInternal
     /// <param name="disposing">Explicit dispose</param>
     protected virtual void Dispose(bool disposing)
     {
-        if (m_Disposed)
+        if (mDisposed)
             return;
 
         if (disposing)
         {
-            m_DisplayWriter?.Dispose();
+            mDisplayWriter?.Dispose();
             DeviceShutdown();
         }
 
-        m_Disposed = true;
+        mDisposed = true;
     }
 
     #endregion Constructor / Dispose / Finalizer
@@ -148,10 +148,9 @@ internal abstract class EPaperDisplayBase : IEPaperDisplayInternal
             busy = !(EPaperDisplayHardware.BusyPin == PinValue.High);
 
             if (timeoutTimer.ElapsedMilliseconds > timeout)
-            {
                 return false;
-            }
-        } while (busy);
+        }
+        while (busy);
 
         return true;
     }
@@ -172,11 +171,17 @@ internal abstract class EPaperDisplayBase : IEPaperDisplayInternal
 
     /// <summary> Display an Image on the Display </summary>
     /// <param name="rawImage">Bitmap that should be displayed</param>
-    /// <param name="dithering"></param>
-    public void DisplayImage(IRawImage rawImage, bool dithering)
+    /// <param name="dithering">Use Dithering to display the image</param>
+    /// <param name="partialRefresh">Enable Refreshing only part of the display.</param>
+    /// <param name="x">Leftmost coordinate for partial refresh</param> 
+    /// <param name="y">Uppermost coordinate for partial refresh </param>
+    public virtual void DisplayImage(IRawImage rawImage, bool dithering, bool partialRefresh = false, int x = 0, int y = 0)
     {
-        SendCommand(StartDataTransmissionCommand);
+        if (partialRefresh)
+            throw new NotImplementedException("Partial Refresh is not implemented for this device.");
 
+        //Full Refresh
+        SendCommand(StartDataTransmissionCommand);
         if (dithering)
             SendDitheredBitmapToDevice(rawImage.ScanLine, rawImage.Stride, rawImage.Width, rawImage.Height);
         else
@@ -225,7 +230,7 @@ internal abstract class EPaperDisplayBase : IEPaperDisplayInternal
         if (DisplayIsSleeping) return;
 
         PowerOff();
-        SendCommand(DeepSleepComand);
+        SendCommand(DeepSleepCommand);
         SendData(0xA5);
         DisplayIsSleeping = true;
     }
@@ -571,12 +576,11 @@ internal abstract class EPaperDisplayBase : IEPaperDisplayInternal
         }
     }
 
-    /// <summary>
-    /// Shut down the device
-    /// </summary>
+    /// <summary> Shut down the device </summary>
     private void DeviceShutdown()
     {
-        if (EPaperDisplayHardware == null) return;
+        if (EPaperDisplayHardware == null) 
+            return;
 
         Sleep();
         EPaperDisplayHardware?.Dispose();
@@ -613,7 +617,7 @@ internal abstract class EPaperDisplayBase : IEPaperDisplayInternal
     /// <param name="color"></param>
     /// <returns></returns>
     private static (double Y, double U, double V) GetYuv(ByteColor color) =>
-        (color.R * .299000 + color.G * .587000 + color.B * .114000,
+            (color.R * .299000 + color.G * .587000 + color.B * .114000,
             color.R * -.168736 + color.G * -.331264 + color.B * .500000 + 128,
             color.R * .500000 + color.G * -.418688 + color.B * -.081312 + 128);
 

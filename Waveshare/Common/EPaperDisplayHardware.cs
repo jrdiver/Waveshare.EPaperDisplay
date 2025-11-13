@@ -89,17 +89,17 @@ internal sealed class EPaperDisplayHardware : IEPaperDisplayHardware
     /// <summary> Internal Constructor with Hardware Interfaces (SPI and GPIO) </summary>
     /// <param name="spiDevice"></param>
     /// <param name="gpioController"></param>
-    internal EPaperDisplayHardware(SpiDevice spiDevice, GpioController gpioController)
+    internal EPaperDisplayHardware(SpiDevice spiDevice, GpioController? gpioController)
     {
         GpioController = gpioController;
 
-        GpioController.OpenPin(GpioResetPin);
-        GpioController.OpenPin(GpioSpiDcPin);
-        GpioController.OpenPin(GpioBusyPin);
+        GpioController?.OpenPin(GpioResetPin);
+        GpioController?.OpenPin(GpioSpiDcPin);
+        GpioController?.OpenPin(GpioBusyPin);
 
-        GpioController.SetPinMode(GpioResetPin, PinMode.Output);
-        GpioController.SetPinMode(GpioSpiDcPin, PinMode.Output);
-        GpioController.SetPinMode(GpioBusyPin, PinMode.Input);
+        GpioController?.SetPinMode(GpioResetPin, PinMode.Output);
+        GpioController?.SetPinMode(GpioSpiDcPin, PinMode.Output);
+        GpioController?.SetPinMode(GpioBusyPin, PinMode.Input);
 
         SpiDevice = spiDevice;
     }

@@ -62,7 +62,7 @@ internal sealed class Epd7In5b_V2 : EPaperDisplayBase
     protected override byte StopDataTransmissionCommand => byte.MaxValue;
 
     /// <summary> Display DeepSleep Command </summary>
-    protected override byte DeepSleepComand => (byte)Epd7In5b_V2Commands.DeepSleep;
+    protected override byte DeepSleepCommand => (byte)Epd7In5b_V2Commands.DeepSleep;
 
     #endregion Properties
 
@@ -112,8 +112,6 @@ internal sealed class Epd7In5b_V2 : EPaperDisplayBase
     }
 
     #endregion Public Methods
-
-    //########################################################################################
 
     #region Protected Methods
 
@@ -177,7 +175,7 @@ internal sealed class Epd7In5b_V2 : EPaperDisplayBase
     /// <returns>Pixel converted to specific byte value for the hardware</returns>
     protected override byte ColorToByte(ByteColor rgb)
     {
-        if (!rgb.IsMonochrome && !IsRed(rgb)) 
+        if (!rgb.IsMonochrome && !IsRed(rgb))
             rgb.Desaturate();
 
         return rgb.R >= 128 ? Epd7In5b_V2Colors.Red : Epd7In5b_V2Colors.NotRed;
@@ -209,7 +207,7 @@ internal sealed class Epd7In5b_V2 : EPaperDisplayBase
 
         SendCommand(command);
 
-        for (int y = 0; y < Height; y++) 
+        for (int y = 0; y < Height; y++)
             SendData(outputLine);
     }
 

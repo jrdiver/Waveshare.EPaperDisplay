@@ -62,7 +62,7 @@ internal class Epd5in65f : EPaperDisplayBase
     protected override byte StopDataTransmissionCommand => (byte)Epd5in65fCommands.DataStop;
 
     /// <summary> Display DeepSleep Command </summary>
-    protected override byte DeepSleepComand => (byte)Epd5in65fCommands.DeepSleep;
+    protected override byte DeepSleepCommand => (byte)Epd5in65fCommands.DeepSleep;
 
     #endregion Properties
 

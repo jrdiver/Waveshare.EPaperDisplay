@@ -26,6 +26,8 @@
 
 // ReSharper disable InconsistentNaming
 
+using Waveshare.Devices.Epd7in5b_V2;
+
 namespace Waveshare.Devices.Epd7in5_V2;
 
 /// <summary>
@@ -62,7 +64,7 @@ internal sealed class Epd7In5_V2 : EPaperDisplayBase
     protected override byte StopDataTransmissionCommand => byte.MaxValue;
 
     /// <summary> Display DeepSleep Command </summary>
-    protected override byte DeepSleepComand => (byte)Epd7In5_V2Commands.DeepSleep;
+    protected override byte DeepSleepCommand => (byte)Epd7In5_V2Commands.DeepSleep;
 
     #endregion Properties
 
@@ -105,6 +107,52 @@ internal sealed class Epd7In5_V2 : EPaperDisplayBase
     {
         WaitUntilReady();
         Thread.Sleep(200);
+    }
+
+    /// <summary> Display an Image on the Display </summary>
+    /// <param name="rawImage">Bitmap that should be displayed</param>
+    /// <param name="dithering">Use Dithering to display the image</param>
+    /// <param name="partialRefresh">Enable Refreshing only part of the display.</param>
+    /// <param name="x">Leftmost coordinate for partial refresh</param> 
+    /// <param name="y">Uppermost coordinate for partial refresh </param>
+    public override void DisplayImage(IRawImage rawImage, bool dithering, bool partialRefresh = false, int x = 0, int y = 0)
+    {
+        if (!partialRefresh)
+        {
+            base.DisplayImage(rawImage, dithering, partialRefresh, x, y);
+            return;
+        }
+
+        //Based off the Python Example code from Waveshare
+        //Partial Refresh
+        SendCommand(Epd7In5_V2Commands.VcomAndDataIntervalSetting);
+        SendData(0xA9);
+        SendData(0x07);
+
+        //Go into Partial Mode
+        SendCommand(Epd7In5_V2Commands.PartialIn);
+        SendCommand(Epd7In5_V2Commands.PartialWindow);
+
+        //X Start
+        SendData((byte)(x / 256));
+        SendData((byte)(x % 256));
+
+        //X End
+        int xEnd = x + rawImage.Width - 1;
+        SendData((byte)(xEnd / 256));
+        SendData((byte)(xEnd % 256));
+
+        //Y Start
+        SendData((byte)(y / 256));
+        SendData((byte)(y % 256));
+
+        //Y End
+        int yEnd = y + rawImage.Height - 1;
+        SendData((byte)(yEnd / 256));
+        SendData((byte)(yEnd % 256));
+        SendData(0x01);
+
+        base.DisplayImage(rawImage, dithering, false, x, y);
     }
 
     #endregion Public Methods

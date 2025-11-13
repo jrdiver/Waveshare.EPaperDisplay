@@ -7,13 +7,8 @@ public interface IEPaperDisplayImage<T> : IEPaperDisplay
     /// <summary> Display an Image on the Display </summary>
     /// <param name="image">Image that should be displayed</param>
     /// <param name="dithering">Use Dithering</param>
-    void DisplayImage(T image, bool dithering);
-
-    /// <summary> Display Image of a generic Type </summary>
-    /// <param name="image">Image that should be displayed</param>
-    void DisplayImage(T image);
-
-    /// <summary> Display Image of a generic Type with dithering </summary>
-    /// <param name="image">Image that should be displayed</param>
-    void DisplayImageWithDithering(T image);
+    /// <param name="partialRefresh">Enable Refreshing only part of the display.</param>
+    /// <param name="x">Leftmost coordinate for partial refresh</param> 
+    /// <param name="y">Uppermost coordinate for partial refresh </param> 
+    void DisplayImage(T image, bool dithering, bool partialRefresh = false, int x = 0, int y = 0);
 }

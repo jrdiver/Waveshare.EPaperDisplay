@@ -59,7 +59,7 @@ internal sealed class Epd7In5Bc : EPaperDisplayBase
     protected override byte StopDataTransmissionCommand => (byte)Epd7In5BcCommands.DataStop;
 
     /// <summary> Display DeepSleep Command </summary>
-    protected override byte DeepSleepComand => (byte)Epd7In5BcCommands.DeepSleep;
+    protected override byte DeepSleepCommand => (byte)Epd7In5BcCommands.DeepSleep;
 
     #endregion Properties
 

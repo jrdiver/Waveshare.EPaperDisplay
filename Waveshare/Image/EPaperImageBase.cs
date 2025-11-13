@@ -108,36 +108,17 @@ internal abstract class EPaperImageBase<T> : IEPaperDisplayImage<T>
     /// <summary> Display an Image on the Display </summary>
     /// <param name="image">Image to be displayed</param>
     /// <param name="dithering">Use Dithering</param>
-    public void DisplayImage(T image, bool dithering)
-    {
-        if (dithering)
-            DisplayImageWithDithering(image);
-        else
-            DisplayImage(image);
-    }
-
-    /// <summary> Display an Image on the Display </summary>
-    /// <param name="image">Image to be displayed</param>
-    public void DisplayImage(T image)
+    /// <param name="partialRefresh">Enable Refreshing only part of the display.</param>
+    /// <param name="x">Leftmost coordinate for partial refresh</param> 
+    /// <param name="y">Uppermost coordinate for partial refresh </param>
+    public void DisplayImage(T image, bool dithering = false, bool partialRefresh = false, int x = 0, int y = 0)
     {
         if (EPaperDisplay is null)
             throw new InvalidOperationException("E-Paper Display is not initialized.");
 
         using IRawImage rawImage = LoadImage(image);
         EPaperDisplay.ColorBytesPerPixel = rawImage.BytesPerPixel;
-        EPaperDisplay.DisplayImage(rawImage, false);
-    }
-
-    /// <summary> Display Image of a generic Type with dithering </summary>
-    /// <param name="image">Image to be displayed</param>
-    public void DisplayImageWithDithering(T image)
-    {
-        if (EPaperDisplay is null)
-            throw new InvalidOperationException("E-Paper Display is not initialized.");
-
-        using IRawImage rawImage = LoadImage(image);
-        EPaperDisplay.ColorBytesPerPixel = rawImage.BytesPerPixel;
-        EPaperDisplay.DisplayImage(rawImage, true);
+        EPaperDisplay.DisplayImage(rawImage, dithering, partialRefresh, x, y);
     }
 
     #endregion Public Methods
