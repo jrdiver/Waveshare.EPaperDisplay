@@ -144,14 +144,14 @@ internal abstract class EPaperDisplayBase : IEPaperDisplayInternal
         Stopwatch timeoutTimer = Stopwatch.StartNew();
         do
         {
-            SendCommand(GetStatusCommand);
+            //SendCommand(GetStatusCommand);
             busy = !(EPaperDisplayHardware.BusyPin == PinValue.High);
 
             if (timeoutTimer.ElapsedMilliseconds > timeout)
                 return false;
         }
         while (busy);
-
+        Console.WriteLine("Completed in " + timeoutTimer.ElapsedMilliseconds);
         return true;
     }
 
@@ -162,11 +162,11 @@ internal abstract class EPaperDisplayBase : IEPaperDisplayInternal
             throw new InvalidOperationException("EPaperDisplayHardware is not initialized.");
 
         EPaperDisplayHardware.ResetPin = PinValue.High;
-        Thread.Sleep(200);
+        Thread.Sleep(20);
         EPaperDisplayHardware.ResetPin = PinValue.Low;
         Thread.Sleep(2);
         EPaperDisplayHardware.ResetPin = PinValue.High;
-        Thread.Sleep(200);
+        Thread.Sleep(20);
     }
 
     /// <summary> Display an Image on the Display </summary>

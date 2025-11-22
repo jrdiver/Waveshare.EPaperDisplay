@@ -177,7 +177,11 @@ internal sealed class EPaperDisplayHardware : IEPaperDisplayHardware
     /// <returns></returns>
     private static SpiDevice CreateSpiDevice()
     {
-        SpiConnectionSettings spiConnectionSettings = new(0, GpioSpiCsPin);
+        SpiConnectionSettings spiConnectionSettings = new(0, GpioSpiCsPin)
+        {
+            ClockFrequency=2000000,
+            Mode = SpiMode.Mode0,
+        };
         return SpiDevice.Create(spiConnectionSettings);
     }
 

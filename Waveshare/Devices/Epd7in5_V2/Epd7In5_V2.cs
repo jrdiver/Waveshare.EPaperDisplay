@@ -26,6 +26,7 @@
 
 // ReSharper disable InconsistentNaming
 
+using System.Runtime.InteropServices;
 using Waveshare.Devices.Epd7in5b_V2;
 
 namespace Waveshare.Devices.Epd7in5_V2;
@@ -122,6 +123,7 @@ internal sealed class Epd7In5_V2 : EPaperDisplayBase
             base.DisplayImage(rawImage, dithering, partialRefresh, x, y);
             return;
         }
+        InitializePartial();
 
         //Based off the Python Example code from Waveshare
         //Partial Refresh
@@ -152,7 +154,62 @@ internal sealed class Epd7In5_V2 : EPaperDisplayBase
         SendData((byte)(yEnd % 256));
         SendData(0x01);
 
-        base.DisplayImage(rawImage, dithering, false, x, y);
+        SendCommand(StartDataTransmissionCommand);
+        if (dithering)
+            SendDitheredBitmapToDevice(rawImage.ScanLine, rawImage.Stride, rawImage.Width, rawImage.Height);
+        else
+        {
+            int stride = rawImage.Stride;
+            IntPtr scanLine = rawImage.ScanLine;
+            Console.WriteLine("Displaying Image without Dithering in Partial Refresh Mode");
+
+
+            byte[] inputLine = new byte[stride];
+            ByteColor pixel = new(0, 0, 0);
+
+            for (int y1 = y; y1 < yEnd; y1++, scanLine += stride)
+            {
+                Marshal.Copy(scanLine, inputLine, 0, inputLine.Length);
+
+                int xPos = 0;
+                for (int x1 = x; x1 < xEnd; x1++)
+                {
+                    pixel.SetBGR(inputLine[xPos++], inputLine[xPos++], inputLine[xPos++], IsPalletMonochrome);
+                    if (ColorBytesPerPixel > 3)
+                        xPos += ColorBytesPerPixel - 3;
+                    DisplayWriter.Write(GetColorIndex(pixel));
+                }
+
+                for (int x1 = xEnd; x1 < Width; x1++)
+                    DisplayWriter.WriteBlankPixel();
+            }
+
+            // Write blank lines if image is smaller than display.
+            for (int y1 = yEnd; y1 < Height; y1++)
+                DisplayWriter.WriteBlankLine();
+
+            DisplayWriter.Finish();
+        }
+
+        if (StopDataTransmissionCommand < byte.MaxValue)
+            SendCommand(StopDataTransmissionCommand);
+
+        TurnOnDisplay();
+    }
+
+    public void InitializePartial()
+    {
+        Reset();
+        SendCommand(Epd7In5_V2Commands.PanelSetting);
+        SendData(0x1F);
+        SendCommand(Epd7In5_V2Commands.PowerOn);
+        SendData(0x1F);
+        Thread.Sleep(100);
+        DeviceWaitUntilReady();
+        SendCommand(Epd7In5_V2Commands.CascadeSetting);
+        SendData(0x02);
+        SendCommand(Epd7In5_V2Commands.ForceTemperature);
+        SendData(0x6E);
     }
 
     #endregion Public Methods
