@@ -14,6 +14,7 @@
 		<RepositoryUrl>https://github.com/eXoCooLd/Waveshare.EPaperDisplay</RepositoryUrl>
 		<RepositoryType>GitHub</RepositoryType>
 		<PackageTags>epaper e-paperdisplay waveshare-eink</PackageTags>
+		<LangVersion>14</LangVersion>
 		<PackageReleaseNotes>
 			Currently only supported Models:
 			- Waveshare 7.5inch e-Paper (B)
@@ -33,8 +34,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="System.Device.Gpio" Version="4.0.1" />
-		<PackageReference Include="System.Drawing.Common" Version="10.0.1" />
+		<PackageReference Include="System.Device.Gpio" Version="4.2.0" />
+		<PackageReference Include="System.Drawing.Common" Version="10.0.11" />
 		<PackageReference Include="SkiaSharp" Version="2.88.9" />
 		<PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="2.88.9" />
 	</ItemGroup>
