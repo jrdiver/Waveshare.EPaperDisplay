@@ -1,4 +1,4 @@
-﻿#region Copyright
+#region Copyright
 // --------------------------------------------------------------------------------------------------------------------
 // MIT License
 // Copyright(c) 2022 Andre Wehrli
@@ -54,7 +54,7 @@ internal class SKBitmapLoader : EPaperImageBase<SKBitmap>, IEPaperDisplaySKBitma
         SKBitmap subSet = new();
         image.ExtractSubset(subSet, new(0, 0, maxWith, maxHeight));
 
-        return new SKBitmapRawImage(image.Resize(new SKImageInfo(maxWith, maxHeight, SKColorType.Bgra8888), SKFilterQuality.High));
+        return new SKBitmapRawImage(image.Resize(new SKImageInfo(maxWith, maxHeight, SKColorType.Bgra8888), new SKSamplingOptions(SKCubicResampler.Mitchell)));
     }
 
     #endregion Protected Methods
