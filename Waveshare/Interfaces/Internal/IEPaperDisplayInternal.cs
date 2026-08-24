@@ -1,4 +1,4 @@
-﻿#region Copyright
+#region Copyright
 // --------------------------------------------------------------------------------------------------------------------
 // MIT License
 // Copyright(c) 2019 Andre Wehrli
@@ -48,6 +48,9 @@ internal interface IEPaperDisplayInternal : IEPaperDisplay
     /// <param name="x">Leftmost coordinate for partial refresh</param> 
     /// <param name="y">Uppermost coordinate for partial refresh </param>
     void DisplayImage(IRawImage rawImage, bool dithering, bool partialRefresh = false, int x = 0, int y = 0);
+
+    /// <summary> Display an Image on the Display using a previous image state to prevent ghosting during partial refresh. </summary>
+    void DisplayImage(IRawImage rawImage, IRawImage previousRawImage, bool dithering, bool partialRefresh = false, int x = 0, int y = 0);
 
     /// <summary> Gets the index for the supported color closest to a color </summary>
     /// <param name="color">Color to look up</param>

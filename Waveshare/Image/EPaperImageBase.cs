@@ -1,4 +1,4 @@
-﻿#region Copyright
+#region Copyright
 // --------------------------------------------------------------------------------------------------------------------
 // MIT License
 // Copyright(c) 2021 Andre Wehrli
@@ -119,6 +119,17 @@ internal abstract class EPaperImageBase<T> : IEPaperDisplayImage<T>
         using IRawImage rawImage = LoadImage(image);
         EPaperDisplay.ColorBytesPerPixel = rawImage.BytesPerPixel;
         EPaperDisplay.DisplayImage(rawImage, dithering, partialRefresh, x, y);
+    }
+
+    public void DisplayImage(T image, T previousImage, bool dithering = false, bool partialRefresh = false, int x = 0, int y = 0)
+    {
+        if (EPaperDisplay is null)
+            throw new InvalidOperationException("E-Paper Display is not initialized.");
+
+        using IRawImage rawImage = LoadImage(image);
+        using IRawImage prevRawImage = LoadImage(previousImage);
+        EPaperDisplay.ColorBytesPerPixel = rawImage.BytesPerPixel;
+        EPaperDisplay.DisplayImage(rawImage, prevRawImage, dithering, partialRefresh, x, y);
     }
 
     #endregion Public Methods

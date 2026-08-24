@@ -1,4 +1,4 @@
-﻿#region Copyright
+#region Copyright
 // --------------------------------------------------------------------------------------------------------------------
 // MIT License
 // Copyright(c) 2020 Greg Cannon
@@ -26,9 +26,6 @@
 
 // ReSharper disable InconsistentNaming
 
-using System.Runtime.InteropServices;
-using Waveshare.Devices.Epd7in5b_V2;
-
 namespace Waveshare.Devices.Epd7in5_V2;
 
 /// <summary>
@@ -53,7 +50,10 @@ internal sealed class Epd7In5_V2 : EPaperDisplayBase
     public override ByteColor[] SupportedByteColors { get; } = [ByteColors.White, ByteColors.Black];
 
     /// <summary> Color Bytes of the E-Paper Device corresponding to the supported colors </summary>
-    public override byte[] DeviceByteColors { get; } = [Epd7In5_V2Colors.White, Epd7In5_V2Colors.Black];
+    private bool _invertPolarity = false;
+    public override byte[] DeviceByteColors => _invertPolarity 
+        ? [Epd7In5_V2Colors.Black, Epd7In5_V2Colors.White] 
+        : [Epd7In5_V2Colors.White, Epd7In5_V2Colors.Black];
 
     /// <summary> Get Status Command </summary>
     protected override byte GetStatusCommand => (byte)Epd7In5_V2Commands.GetStatus;
@@ -116,94 +116,137 @@ internal sealed class Epd7In5_V2 : EPaperDisplayBase
     /// <param name="partialRefresh">Enable Refreshing only part of the display.</param>
     /// <param name="x">Leftmost coordinate for partial refresh</param> 
     /// <param name="y">Uppermost coordinate for partial refresh </param>
-    public override void DisplayImage(IRawImage rawImage, bool dithering, bool partialRefresh = false, int x = 0, int y = 0)
+    public override void DisplayImage(IRawImage rawImage, IRawImage previousRawImage, bool dithering, bool partialRefresh = false, int x = 0, int y = 0)
     {
         if (!partialRefresh)
         {
-            base.DisplayImage(rawImage, dithering, partialRefresh, x, y);
+            DisplayImage(rawImage, dithering, false, x, y);
             return;
         }
+
         InitializePartial();
 
-        //Based off the Python Example code from Waveshare
-        //Partial Refresh
         SendCommand(Epd7In5_V2Commands.VcomAndDataIntervalSetting);
         SendData(0xA9);
         SendData(0x07);
 
-        //Go into Partial Mode
         SendCommand(Epd7In5_V2Commands.PartialIn);
         SendCommand(Epd7In5_V2Commands.PartialWindow);
 
-        //X Start
+        x = (x / 8) * 8;
+        int xEnd = x + rawImage.Width - 1;
+
         SendData((byte)(x / 256));
         SendData((byte)(x % 256));
-
-        //X End
-        int xEnd = x + rawImage.Width - 1;
         SendData((byte)(xEnd / 256));
         SendData((byte)(xEnd % 256));
-
-        //Y Start
         SendData((byte)(y / 256));
         SendData((byte)(y % 256));
-
-        //Y End
         int yEnd = y + rawImage.Height - 1;
         SendData((byte)(yEnd / 256));
         SendData((byte)(yEnd % 256));
         SendData(0x01);
 
-        SendCommand(StartDataTransmissionCommand);
-        if (dithering)
-            SendDitheredBitmapToDevice(rawImage.ScanLine, rawImage.Stride, rawImage.Width, rawImage.Height);
-        else
-        {
-            int stride = rawImage.Stride;
-            IntPtr scanLine = rawImage.ScanLine;
-            Console.WriteLine("Displaying Image without Dithering in Partial Refresh Mode");
-
-
-            byte[] inputLine = new byte[stride];
-            ByteColor pixel = new(0, 0, 0);
-
-            for (int y1 = y; y1 < yEnd; y1++, scanLine += stride)
-            {
-                Marshal.Copy(scanLine, inputLine, 0, inputLine.Length);
-
-                int xPos = 0;
-                for (int x1 = x; x1 < xEnd; x1++)
-                {
-                    pixel.SetBGR(inputLine[xPos++], inputLine[xPos++], inputLine[xPos++], IsPalletMonochrome);
-                    if (ColorBytesPerPixel > 3)
-                        xPos += ColorBytesPerPixel - 3;
-                    DisplayWriter.Write(GetColorIndex(pixel));
-                }
-
-                for (int x1 = xEnd; x1 < Width; x1++)
-                    DisplayWriter.WriteBlankPixel();
-            }
-
-            // Write blank lines if image is smaller than display.
-            for (int y1 = yEnd; y1 < Height; y1++)
-                DisplayWriter.WriteBlankLine();
-
-            DisplayWriter.Finish();
-        }
+        // Write the previous state to the 'Old' buffer (0x10) to prevent desync ghosting
+        WritePartialImageToDevice(previousRawImage, (byte)Epd7In5_V2Commands.DataStartTransmission1, dithering);
+        
+        // Write the new state to the 'New' buffer (0x13)
+        WritePartialImageToDevice(rawImage, StartDataTransmissionCommand, dithering);
 
         if (StopDataTransmissionCommand < byte.MaxValue)
             SendCommand(StopDataTransmissionCommand);
 
         TurnOnDisplay();
+        SendCommand(Epd7In5_V2Commands.PartialOut);
+    }
+
+    public override void DisplayImage(IRawImage rawImage, bool dithering, bool partialRefresh = false, int x = 0, int y = 0)
+    {
+        if (!partialRefresh)
+        {
+            // Seed the 'Old' image buffer (0x10) with inverted data.
+            // This allows future Partial Updates to know the current screen state and avoid flashing.
+            _invertPolarity = true;
+            SendCommand(Epd7In5_V2Commands.DataStartTransmission1);
+            if (dithering)
+                SendDitheredBitmapToDevice(rawImage.ScanLine, rawImage.Stride, rawImage.Width, rawImage.Height);
+            else
+                SendBitmapToDevice(rawImage.ScanLine, rawImage.Stride, rawImage.Width, rawImage.Height);
+            _invertPolarity = false;
+            
+            // Now send the normal image to the 'New' buffer (0x13) and refresh
+            base.DisplayImage(rawImage, dithering, partialRefresh, x, y);
+            return;
+        }
+
+        InitializePartial();
+
+        SendCommand(Epd7In5_V2Commands.VcomAndDataIntervalSetting);
+        SendData(0xA9);
+        SendData(0x07);
+
+        SendCommand(Epd7In5_V2Commands.PartialIn);
+        SendCommand(Epd7In5_V2Commands.PartialWindow);
+
+        x = (x / 8) * 8;
+        int xEnd = x + rawImage.Width - 1;
+
+        SendData((byte)(x / 256));
+        SendData((byte)(x % 256));
+        SendData((byte)(xEnd / 256));
+        SendData((byte)(xEnd % 256));
+        SendData((byte)(y / 256));
+        SendData((byte)(y % 256));
+        int yEnd = y + rawImage.Height - 1;
+        SendData((byte)(yEnd / 256));
+        SendData((byte)(yEnd % 256));
+        SendData(0x01);
+
+        WritePartialImageToDevice(rawImage, StartDataTransmissionCommand, dithering);
+
+        if (StopDataTransmissionCommand < byte.MaxValue)
+            SendCommand(StopDataTransmissionCommand);
+
+        TurnOnDisplay();
+        SendCommand(Epd7In5_V2Commands.PartialOut);
+    }
+
+    private void WritePartialImageToDevice(IRawImage rawImage, byte command, bool dithering)
+    {
+        SendCommand(command);
+        
+        // The Partial Update LUT on this hardware requires inverted polarity (White=1, Black=0)
+        _invertPolarity = true;
+        
+        if (dithering)
+        {
+            SendDitheredBitmapToDevice(rawImage.ScanLine, rawImage.Stride, rawImage.Width, rawImage.Height, padToFull: false);
+        }
+        else
+        {
+            SendBitmapToDevice(rawImage.ScanLine, rawImage.Stride, rawImage.Width, rawImage.Height, padToFull: false);
+        }
+
+        // The controller expects exactly 48000 bytes. Pad the remaining data.
+        int totalPixels = Width * Height;
+        int pixelsWritten = rawImage.Width * rawImage.Height;
+        for (int p = pixelsWritten; p < totalPixels; p++)
+            DisplayWriter.WriteBlankPixel();
+            
+        DisplayWriter.Finish();
+        
+        _invertPolarity = false;
     }
 
     public void InitializePartial()
     {
+        // We MUST call Reset() here. Toggling the hardware reset pin resets the controller's logic state machine 
+        // so it will accept the new LUT configuration (0xE5). Without it, it ignores the partial LUT and flashes!
+        // (SRAM containing the old image is preserved during a soft logic reset).
         Reset();
         SendCommand(Epd7In5_V2Commands.PanelSetting);
         SendData(0x1F);
         SendCommand(Epd7In5_V2Commands.PowerOn);
-        SendData(0x1F);
         Thread.Sleep(100);
         DeviceWaitUntilReady();
         SendCommand(Epd7In5_V2Commands.CascadeSetting);

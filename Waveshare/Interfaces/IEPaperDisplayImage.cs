@@ -1,4 +1,4 @@
-﻿namespace Waveshare.Interfaces;
+namespace Waveshare.Interfaces;
 
 /// <summary> Base generic Interface for ImageLoaders </summary>
 /// <typeparam name="T"></typeparam>
@@ -11,4 +11,9 @@ public interface IEPaperDisplayImage<T> : IEPaperDisplay
     /// <param name="x">Leftmost coordinate for partial refresh</param> 
     /// <param name="y">Uppermost coordinate for partial refresh </param> 
     void DisplayImage(T image, bool dithering, bool partialRefresh = false, int x = 0, int y = 0);
+
+    /// <summary> Display an Image on the Display using a previous image state to prevent ghosting during partial refresh. </summary>
+    /// <param name="image">Image that should be displayed</param>
+    /// <param name="previousImage">Previous image state to clear</param>
+    void DisplayImage(T image, T previousImage, bool dithering, bool partialRefresh = false, int x = 0, int y = 0);
 }

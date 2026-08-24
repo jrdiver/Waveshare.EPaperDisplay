@@ -1,4 +1,4 @@
-﻿#region Copyright
+#region Copyright
 // --------------------------------------------------------------------------------------------------------------------
 // MIT License
 // Copyright(c) 2019 Andre Wehrli
@@ -175,6 +175,13 @@ internal abstract class EPaperDisplayBase : IEPaperDisplayInternal
     /// <param name="partialRefresh">Enable Refreshing only part of the display.</param>
     /// <param name="x">Leftmost coordinate for partial refresh</param> 
     /// <param name="y">Uppermost coordinate for partial refresh </param>
+    public virtual void DisplayImage(IRawImage rawImage, IRawImage previousRawImage, bool dithering, bool partialRefresh = false, int x = 0, int y = 0)
+    {
+        // Default implementation just calls the normal one (ignoring the previous image).
+        // Devices that support it can override this method.
+        DisplayImage(rawImage, dithering, partialRefresh, x, y);
+    }
+
     public virtual void DisplayImage(IRawImage rawImage, bool dithering, bool partialRefresh = false, int x = 0, int y = 0)
     {
         if (partialRefresh)
@@ -401,7 +408,8 @@ internal abstract class EPaperDisplayBase : IEPaperDisplayInternal
     /// <param name="stride">Length of a ScanLine</param>
     /// <param name="maxX">Max Pixels horizontal</param>
     /// <param name="maxY">Max Pixels Vertical</param>
-    internal void SendBitmapToDevice(IntPtr scanLine, int stride, int maxX, int maxY)
+    /// <param name="padToFull">Whether to pad to the full display width/height</param>
+    internal void SendBitmapToDevice(IntPtr scanLine, int stride, int maxX, int maxY, bool padToFull = true)
     {
         byte[] inputLine = new byte[stride];
         ByteColor pixel = new(0, 0, 0);
@@ -419,13 +427,19 @@ internal abstract class EPaperDisplayBase : IEPaperDisplayInternal
                 DisplayWriter.Write(GetColorIndex(pixel));
             }
 
-            for (int x = maxX; x < Width; x++)
-                DisplayWriter.WriteBlankPixel();
+            if (padToFull)
+            {
+                for (int x = maxX; x < Width; x++)
+                    DisplayWriter.WriteBlankPixel();
+            }
         }
 
-        // Write blank lines if image is smaller than display.
-        for (int y = maxY; y < Height; y++)
-            DisplayWriter.WriteBlankLine();
+        if (padToFull)
+        {
+            // Write blank lines if image is smaller than display.
+            for (int y = maxY; y < Height; y++)
+                DisplayWriter.WriteBlankLine();
+        }
 
         DisplayWriter.Finish();
     }
@@ -435,9 +449,11 @@ internal abstract class EPaperDisplayBase : IEPaperDisplayInternal
     /// <param name="stride">Length of a ScanLine</param>
     /// <param name="maxX">Max Pixels horizontal</param>
     /// <param name="maxY">Max Pixels Vertical</param>
-    internal void SendDitheredBitmapToDevice(IntPtr scanLine, int stride, int maxX, int maxY)
+    /// <param name="padToFull">Whether to pad to the full display width/height</param>
+    internal void SendDitheredBitmapToDevice(IntPtr scanLine, int stride, int maxX, int maxY, bool padToFull = true)
     {
-        ByteColor[,] data = new ByteColor[Width, 2];
+        int logicalWidth = padToFull ? Width : maxX;
+        ByteColor[,] data = new ByteColor[logicalWidth, 2];
         int currentLine = 0;
         int previousLine = 1;
 
@@ -473,19 +489,25 @@ internal abstract class EPaperDisplayBase : IEPaperDisplayInternal
                 data[x, currentLine] = pixel;
             }
 
-            for (int x = maxX; x < Width; x++)
-                data[x, currentLine] = ByteColors.White;
+            if (padToFull)
+            {
+                for (int x = maxX; x < Width; x++)
+                    data[x, currentLine] = ByteColors.White;
+            }
 
             if (dither)
-                DitherAndWrite(data, previousLine, currentLine, false);
+                DitherAndWrite(data, previousLine, currentLine, false, logicalWidth);
         }
 
         // Finish last line
-        DitherAndWrite(data, currentLine, previousLine, true);
+        DitherAndWrite(data, currentLine, previousLine, true, logicalWidth);
 
-        // Write blank lines if image is smaller than display.
-        for (int y = maxY; y < Height; y++)
-            DisplayWriter.WriteBlankLine();
+        if (padToFull)
+        {
+            // Write blank lines if image is smaller than display.
+            for (int y = maxY; y < Height; y++)
+                DisplayWriter.WriteBlankLine();
+        }
 
         DisplayWriter.Finish();
     }
@@ -499,10 +521,10 @@ internal abstract class EPaperDisplayBase : IEPaperDisplayInternal
     /// <param name="line1"></param>
     /// <param name="line2"></param>
     /// <param name="lastLine"></param>
-    private void DitherAndWrite(ByteColor[,] data, int line1, int line2, bool lastLine)
+    private void DitherAndWrite(ByteColor[,] data, int line1, int line2, bool lastLine, int maxX)
     {
         bool odd = true;
-        for (int x = 0; x < Width; x++)
+        for (int x = 0; x < maxX; x++)
         {
             ByteColor oldPixel = data[x, line1];
             int colorIndex = GetColorIndex(oldPixel);
@@ -519,7 +541,7 @@ internal abstract class EPaperDisplayBase : IEPaperDisplayInternal
 
             if (odd)
             {
-                if (x < Width - 1)
+                if (x < maxX - 1)
                 {
                     data[x + 1, line1].R = ConvertColorIntToByte(data[x + 1, line1].R + errorR * 7 / 16);
                     data[x + 1, line1].G = ConvertColorIntToByte(data[x + 1, line1].G + errorG * 7 / 16);
@@ -537,7 +559,7 @@ internal abstract class EPaperDisplayBase : IEPaperDisplayInternal
                 data[x, line2].G = ConvertColorIntToByte(data[x, line2].G + errorG * 5 / 16);
                 data[x, line2].B = ConvertColorIntToByte(data[x, line2].B + errorB * 5 / 16);
 
-                if (x < Width - 1)
+                if (x < maxX - 1)
                 {
                     data[x + 1, line2].R = ConvertColorIntToByte(data[x + 1, line2].R + errorR * 1 / 16);
                     data[x + 1, line2].G = ConvertColorIntToByte(data[x + 1, line2].G + errorG * 1 / 16);
@@ -553,7 +575,7 @@ internal abstract class EPaperDisplayBase : IEPaperDisplayInternal
                     data[x - 1, line1].B = ConvertColorIntToByte(data[x - 1, line1].B + errorB * 7 / 16);
                 }
 
-                if (x < Width - 1)
+                if (x < maxX - 1)
                 {
                     data[x + 1, line2].R = ConvertColorIntToByte(data[x + 1, line2].R + errorR * 3 / 16);
                     data[x + 1, line2].G = ConvertColorIntToByte(data[x + 1, line2].G + errorG * 3 / 16);
