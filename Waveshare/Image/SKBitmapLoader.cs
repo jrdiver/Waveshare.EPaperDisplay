@@ -51,11 +51,12 @@ internal class SKBitmapLoader : EPaperImageBase<SKBitmap>, IEPaperDisplaySKBitma
         int maxWith = Math.Min(Width, image.Width);
         int maxHeight = Math.Min(Height, image.Height);
 
-        SKBitmap subSet = new();
-        image.ExtractSubset(subSet, new(0, 0, maxWith, maxHeight));
-
-        return new SKBitmapRawImage(image.Resize(new SKImageInfo(maxWith, maxHeight, SKColorType.Bgra8888), new SKSamplingOptions(SKCubicResampler.Mitchell)));
+        // Resize directly returns a new SKBitmap instance which is safely passed into SKBitmapRawImage
+        // SKBitmapRawImage implements IDisposable and will dispose this new SKBitmap when the rawImage is disposed
+        SKBitmap resizedImage = image.Resize(new SKImageInfo(maxWith, maxHeight, SKColorType.Bgra8888), new SKSamplingOptions(SKCubicResampler.Mitchell));
+        return new SKBitmapRawImage(resizedImage);
     }
 
     #endregion Protected Methods
 }
+

@@ -164,6 +164,9 @@ internal sealed class Epd7In5_V2 : EPaperDisplayBase
     {
         if (!partialRefresh)
         {
+            // Reset and initialize hardware for full refresh to clear partial LUTs
+            DeviceInitialize();
+
             // Seed the 'Old' image buffer (0x10) with inverted data.
             // This allows future Partial Updates to know the current screen state and avoid flashing.
             _invertPolarity = true;
