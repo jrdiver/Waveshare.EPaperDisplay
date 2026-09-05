@@ -77,12 +77,12 @@ internal abstract class EPaperImageBase<T> : IEPaperDisplayImage<T>
 
     /// <summary> Wait until the display is ready </summary>
     /// <returns>true if device is ready, false for timeout</returns>
-    public bool WaitUntilReady() => EPaperDisplay?.WaitUntilReady() ?? false;
+    public bool WaitUntilReady([System.Runtime.CompilerServices.CallerMemberName] string caller = "") => EPaperDisplay?.WaitUntilReady(caller) ?? false;
 
     /// <summary> Wait until the display is ready </summary>
     /// <param name="timeout"></param>
     /// <returns>true if device is ready, false for timeout</returns>
-    public bool WaitUntilReady(int timeout) => EPaperDisplay?.WaitUntilReady(timeout) ?? false;
+    public bool WaitUntilReady(int timeout, [System.Runtime.CompilerServices.CallerMemberName] string caller = "") => EPaperDisplay?.WaitUntilReady(timeout, caller) ?? false;
 
     /// <summary> Power the controller on.  Do not use with SleepMode. </summary>
     public void PowerOn() => EPaperDisplay?.PowerOn();

@@ -339,3 +339,5 @@ internal sealed class Epd7In5_V2 : EPaperDisplayBase
 
     #endregion Private Methods
 }
+
+

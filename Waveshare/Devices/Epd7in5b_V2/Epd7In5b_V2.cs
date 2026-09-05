@@ -1,4 +1,4 @@
-﻿#region Copyright
+#region Copyright
 // --------------------------------------------------------------------------------------------------------------------
 // MIT License
 // Copyright(c) 2021 Greg Cannon
@@ -213,3 +213,5 @@ internal sealed class Epd7In5b_V2 : EPaperDisplayBase
 
     #endregion Private Methods
 }
+
+

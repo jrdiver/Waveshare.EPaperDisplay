@@ -129,12 +129,13 @@ internal abstract class EPaperDisplayBase : IEPaperDisplayInternal
 
     /// <summary> Wait until the display is ready </summary>
     /// <returns>true if device is ready, false for timeout</returns>
-    public bool WaitUntilReady() => WaitUntilReady(WaitUntilReadyTimeout);
+    public bool WaitUntilReady([System.Runtime.CompilerServices.CallerMemberName] string caller = "") => WaitUntilReady(WaitUntilReadyTimeout, caller);
 
     /// <summary> Wait until the display is ready </summary>
-    /// <param name="timeout"></param>
+    /// <param name="timeout">Timeout in milliseconds</param>
+    /// <param name="caller">Name of the calling method</param>
     /// <returns>true if device is ready, false for timeout</returns>
-    public bool WaitUntilReady(int timeout)
+    public bool WaitUntilReady(int timeout, [System.Runtime.CompilerServices.CallerMemberName] string caller = "")
     {
         if (EPaperDisplayHardware is null)
             throw new InvalidOperationException("EPaperDisplayHardware is not initialized.");
@@ -151,7 +152,7 @@ internal abstract class EPaperDisplayBase : IEPaperDisplayInternal
                 return false;
         }
         while (busy);
-        Console.WriteLine("Completed in " + timeoutTimer.ElapsedMilliseconds);
+        Console.WriteLine($"Hardware Ready Wait completed in {timeoutTimer.ElapsedMilliseconds}ms (Called by {caller})");
         return true;
     }
 
@@ -171,6 +172,7 @@ internal abstract class EPaperDisplayBase : IEPaperDisplayInternal
 
     /// <summary> Display an Image on the Display </summary>
     /// <param name="rawImage">Bitmap that should be displayed</param>
+    /// <param name="previousRawImage">Bitmap that was previously displayed</param>
     /// <param name="dithering">Use Dithering to display the image</param>
     /// <param name="partialRefresh">Enable Refreshing only part of the display.</param>
     /// <param name="x">Leftmost coordinate for partial refresh</param> 

@@ -1,4 +1,4 @@
-﻿#region Copyright
+#region Copyright
 // --------------------------------------------------------------------------------------------------------------------
 // MIT License
 // Copyright(c) 2019 Andre Wehrli
@@ -36,12 +36,12 @@ public interface IEPaperDisplay : IDisposable
 
     /// <summary> Wait until the display is ready </summary>
     /// <returns>true if device is ready, false for timeout</returns>
-    bool WaitUntilReady();
+    bool WaitUntilReady([System.Runtime.CompilerServices.CallerMemberName] string caller = "");
 
     /// <summary> Wait until the display is ready </summary>
     /// <param name="timeout"></param>
     /// <returns>true if device is ready, false for timeout</returns>
-    bool WaitUntilReady(int timeout);
+    bool WaitUntilReady(int timeout, [System.Runtime.CompilerServices.CallerMemberName] string caller = "");
 
     /// <summary> Power the controller on.  Do not use with SleepMode. </summary>
     void PowerOn();
