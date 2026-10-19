@@ -132,6 +132,16 @@ internal abstract class EPaperImageBase<T> : IEPaperDisplayImage<T>
         EPaperDisplay.DisplayImage(rawImage, prevRawImage, dithering, partialRefresh, x, y);
     }
 
+    public void DisplayImage4Gray(T image)
+    {
+        if (EPaperDisplay is null)
+            throw new InvalidOperationException("E-Paper Display is not initialized.");
+
+        using IRawImage rawImage = LoadImage(image);
+        EPaperDisplay.ColorBytesPerPixel = rawImage.BytesPerPixel;
+        EPaperDisplay.DisplayImage4Gray(rawImage);
+    }
+
     #endregion Public Methods
 
     #region Protected Methods

@@ -165,9 +165,13 @@ internal sealed class Epd7In5b_V2 : EPaperDisplayBase
     /// <summary> Turn the Display PowerOn after a Sleep </summary>
     protected override void TurnOnDisplay()
     {
+        SendCommand(Epd7In5b_V2Commands.PowerOn);
+        Thread.Sleep(100);
+        DeviceWaitUntilReady();
         SendCommand(Epd7In5b_V2Commands.DisplayRefresh);
         Thread.Sleep(100);
         DeviceWaitUntilReady();
+        PowerOff();
     }
 
     /// <summary> Convert a pixel to a DataByte </summary>

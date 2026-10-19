@@ -26,6 +26,8 @@
 
 // ReSharper disable InconsistentNaming
 
+using System.Runtime.InteropServices;
+
 namespace Waveshare.Devices.Epd7in5_V2;
 
 /// <summary>
@@ -74,16 +76,20 @@ internal sealed class Epd7In5_V2 : EPaperDisplayBase
     /// <summary> Clear the Display to White </summary>
     public override void Clear()
     {
+        DeviceInitialize();
         FillColor(Epd7In5_V2Commands.DataStartTransmission1, ByteColors.White);
         FillColor(Epd7In5_V2Commands.DataStartTransmission2, ByteColors.White);
         TurnOnDisplay();
+        PowerOff();
     }
 
     /// <summary> Clear the Display to Black </summary>
     public override void ClearBlack()
     {
+        DeviceInitialize();
         FillColor(Epd7In5_V2Commands.DataStartTransmission2, ByteColors.Black);
         TurnOnDisplay();
+        PowerOff();
     }
 
     /// <summary> Power the controller on.  Do not use with SleepMode. </summary>
@@ -99,6 +105,8 @@ internal sealed class Epd7In5_V2 : EPaperDisplayBase
     /// </summary>
     public override void PowerOff()
     {
+        SendCommand(Epd7In5_V2Commands.VcomAndDataIntervalSetting);
+        SendData(0xF7);
         SendCommand(Epd7In5_V2Commands.PowerOff);
         DeviceWaitUntilReady();
     }
@@ -158,6 +166,7 @@ internal sealed class Epd7In5_V2 : EPaperDisplayBase
 
         TurnOnDisplay();
         SendCommand(Epd7In5_V2Commands.PartialOut);
+        PowerOff();
     }
 
     public override void DisplayImage(IRawImage rawImage, bool dithering, bool partialRefresh = false, int x = 0, int y = 0)
@@ -179,6 +188,7 @@ internal sealed class Epd7In5_V2 : EPaperDisplayBase
             
             // Now send the normal image to the 'New' buffer (0x13) and refresh
             base.DisplayImage(rawImage, dithering, partialRefresh, x, y);
+            PowerOff();
             return;
         }
 
@@ -212,6 +222,7 @@ internal sealed class Epd7In5_V2 : EPaperDisplayBase
 
         TurnOnDisplay();
         SendCommand(Epd7In5_V2Commands.PartialOut);
+        PowerOff();
     }
 
     private void WritePartialImageToDevice(IRawImage rawImage, byte command, bool dithering)
@@ -256,6 +267,200 @@ internal sealed class Epd7In5_V2 : EPaperDisplayBase
         SendData(0x02);
         SendCommand(Epd7In5_V2Commands.ForceTemperature);
         SendData(0x6E);
+    }
+
+    // 42-byte custom 4-Gray waveform LUTs for UC8179 (works on pre-Oct 2023 panels via PanelSetting 0x3F)
+    private static readonly byte[] Lut4GrayVcom =
+    [
+        0x00, 0x0F, 0x0F, 0x00, 0x00, 0x01,
+        0x00, 0x0F, 0x01, 0x0F, 0x01, 0x02,
+        0x00, 0x0F, 0x0F, 0x00, 0x00, 0x01,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+    ];
+
+    // (0,0) -> Pure White (15 frames VDL White in final phase)
+    private static readonly byte[] Lut4GrayWW =
+    [
+        0x10, 0x0F, 0x0F, 0x00, 0x00, 0x01,
+        0x84, 0x0F, 0x01, 0x0F, 0x01, 0x02,
+        0x20, 0x0F, 0x0F, 0x00, 0x00, 0x01,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+    ];
+
+    // (1,0) -> Light Gray (11 frames VDL White + 4 frames VDH Black in final phase)
+    private static readonly byte[] Lut4GrayBW =
+    [
+        0x10, 0x0F, 0x0F, 0x00, 0x00, 0x01,
+        0x84, 0x0F, 0x01, 0x0F, 0x01, 0x02,
+        0x24, 0x0F, 0x0B, 0x04, 0x00, 0x01,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+    ];
+
+    // (0,1) -> Dark Gray (6 frames VDL White + 9 frames VDH Black in final phase)
+    private static readonly byte[] Lut4GrayWB =
+    [
+        0x80, 0x0F, 0x0F, 0x00, 0x00, 0x01,
+        0x84, 0x0F, 0x01, 0x0F, 0x01, 0x02,
+        0x24, 0x0F, 0x06, 0x09, 0x00, 0x01,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+    ];
+
+    // (1,1) -> Pure Black (15 frames VDH Black in final phase)
+    private static readonly byte[] Lut4GrayBB =
+    [
+        0x80, 0x0F, 0x0F, 0x00, 0x00, 0x01,
+        0x84, 0x0F, 0x01, 0x0F, 0x01, 0x02,
+        0x40, 0x0F, 0x0F, 0x00, 0x00, 0x01,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+    ];
+
+    public void Initialize4Gray()
+    {
+        Reset();
+
+        SendCommand(Epd7In5_V2Commands.PowerSetting);
+        SendData(0x17); // Internal power
+        SendData(0x17); // VGH=20V, VGL=-20V
+        SendData(0x3F); // VSH=15V
+        SendData(0x3F); // VSL=-15V
+        SendData(0x11); // VSHR
+
+        SendCommand(Epd7In5_V2Commands.VcmDcSetting);
+        SendData(0x24);
+
+        SendCommand(Epd7In5_V2Commands.BoosterSoftStart);
+        SendData(0x27);
+        SendData(0x27);
+        SendData(0x2F);
+        SendData(0x17);
+
+        SendCommand(Epd7In5_V2Commands.PllControl);
+        SendData(0x06);
+
+        SendCommand(Epd7In5_V2Commands.PowerOn);
+        Thread.Sleep(100);
+        DeviceWaitUntilReady();
+
+        // 0x3F enables custom LUT registers (0x20-0x24) instead of factory OTP ROM
+        SendCommand(Epd7In5_V2Commands.PanelSetting);
+        SendData(0x3F);
+
+        SendCommand(Epd7In5_V2Commands.TconResolution);
+        SendData(0x03); // 800
+        SendData(0x20);
+        SendData(0x01); // 480
+        SendData(0xE0);
+
+        SendCommand(Epd7In5_V2Commands.DualSpi);
+        SendData(0x00);
+
+        SendCommand(Epd7In5_V2Commands.VcomAndDataIntervalSetting);
+        SendData(0x10);
+        SendData(0x00);
+
+        SendCommand(Epd7In5_V2Commands.TconSetting);
+        SendData(0x22);
+
+        SendCommand(Epd7In5_V2Commands.GateSourceStartSetting);
+        SendData(0x00);
+        SendData(0x00);
+        SendData(0x00);
+        SendData(0x00);
+
+        SendCommand(Epd7In5_V2Commands.LutVcom);
+        SendData(Lut4GrayVcom);
+        SendCommand(Epd7In5_V2Commands.LutWhiteToWhite);
+        SendData(Lut4GrayWW);
+        SendCommand(Epd7In5_V2Commands.LutBlackToWhite);
+        SendData(Lut4GrayBW);
+        SendCommand(Epd7In5_V2Commands.LutWhiteToBlack);
+        SendData(Lut4GrayWB);
+        SendCommand(Epd7In5_V2Commands.LutBlackToBlack);
+        SendData(Lut4GrayBB);
+    }
+
+    public override void DisplayImage4Gray(IRawImage rawImage)
+    {
+        Initialize4Gray();
+
+        int bytesPerRow = Width / 8; // 100 bytes per row
+        int totalBytes = bytesPerRow * Height; // 48,000 bytes
+        byte[] plane10 = new byte[totalBytes];
+        byte[] plane13 = new byte[totalBytes];
+
+        byte[] rowBuffer = new byte[rawImage.Stride];
+        int maxY = Math.Min(Height, rawImage.Height);
+        int maxX = Math.Min(Width, rawImage.Width);
+        int bpp = ColorBytesPerPixel;
+
+        for (int y = 0; y < maxY; y++)
+        {
+            IntPtr rowPtr = rawImage.ScanLine + (y * rawImage.Stride);
+            Marshal.Copy(rowPtr, rowBuffer, 0, rawImage.Stride);
+
+            int rowByteOffset = y * bytesPerRow;
+            for (int x = 0; x < maxX; x++)
+            {
+                byte lum = rowBuffer[x * bpp]; // Pre-quantized grayscale (B == G == R)
+                int byteIdx = rowByteOffset + (x >> 3);
+                int bitMask = 0x80 >> (x & 7);
+
+                // Bitplane encoding matching UC8179 4-gray LUTs:
+                // White (>= 213)      -> (0, 0)
+                // Light Gray (>= 128) -> (1, 0)
+                // Dark Gray (>= 43)   -> (0, 1)
+                // Black (< 43)        -> (1, 1)
+                if (lum < 213)
+                {
+                    if (lum >= 128)
+                    {
+                        plane10[byteIdx] |= (byte)bitMask;
+                    }
+                    else if (lum >= 43)
+                    {
+                        plane13[byteIdx] |= (byte)bitMask;
+                    }
+                    else
+                    {
+                        plane10[byteIdx] |= (byte)bitMask;
+                        plane13[byteIdx] |= (byte)bitMask;
+                    }
+                }
+            }
+        }
+
+        SendCommand(Epd7In5_V2Commands.DataStartTransmission1);
+        SendData(plane10);
+
+        SendCommand(Epd7In5_V2Commands.DataStartTransmission2);
+        SendData(plane13);
+
+        TurnOnDisplay();
+
+        // Seed 0x10 ('Old' buffer) with ~plane13 so subsequent 1-bit partial clock updates
+        // see matching old/new state outside the partial window and don't disturb 4-gray pixels.
+        for (int i = 0; i < totalBytes; i++)
+            plane10[i] = (byte)~plane13[i];
+
+        SendCommand(Epd7In5_V2Commands.DataStartTransmission1);
+        SendData(plane10);
+
+        PowerOff();
     }
 
     #endregion Public Methods

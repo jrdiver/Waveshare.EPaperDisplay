@@ -52,6 +52,9 @@ internal interface IEPaperDisplayInternal : IEPaperDisplay
     /// <summary> Display an Image on the Display using a previous image state to prevent ghosting during partial refresh. </summary>
     void DisplayImage(IRawImage rawImage, IRawImage previousRawImage, bool dithering, bool partialRefresh = false, int x = 0, int y = 0);
 
+    /// <summary> Display a 4-level grayscale image on supported displays. </summary>
+    void DisplayImage4Gray(IRawImage rawImage);
+
     /// <summary> Gets the index for the supported color closest to a color </summary>
     /// <param name="color">Color to look up</param>
     /// <returns>Color index of closest supported color</returns>

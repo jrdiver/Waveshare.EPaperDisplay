@@ -1,4 +1,4 @@
-﻿#region Copyright
+#region Copyright
 // --------------------------------------------------------------------------------------------------------------------
 // MIT License
 // Copyright(c) 2019 Andre Wehrli
@@ -45,6 +45,9 @@ internal sealed class EPaperDisplayHardware : IEPaperDisplayHardware
     /// <summary> GPIO Busy Pin Number </summary>
     private const int GpioBusyPin = 24;
 
+    /// <summary> GPIO Power Pin Number (Waveshare HAT 3.3V Power Enable) </summary>
+    private const int GpioPwrPin = 18;
+
     #endregion Constants
 
     #region Properties
@@ -72,7 +75,7 @@ internal sealed class EPaperDisplayHardware : IEPaperDisplayHardware
     /// <summary> GPIO Busy Pin </summary>
     public PinValue BusyPin
     {
-        get => GpioController?.Read(GpioBusyPin)?? -1;
+        get => GpioController?.Read(GpioBusyPin) ?? -1;
         set => GpioController?.Write(GpioBusyPin, value);
     }
 
@@ -96,10 +99,20 @@ internal sealed class EPaperDisplayHardware : IEPaperDisplayHardware
         GpioController?.OpenPin(GpioResetPin);
         GpioController?.OpenPin(GpioSpiDcPin);
         GpioController?.OpenPin(GpioBusyPin);
+        GpioController?.OpenPin(GpioPwrPin);
 
         GpioController?.SetPinMode(GpioResetPin, PinMode.Output);
         GpioController?.SetPinMode(GpioSpiDcPin, PinMode.Output);
         GpioController?.SetPinMode(GpioBusyPin, PinMode.Input);
+        GpioController?.SetPinMode(GpioPwrPin, PinMode.Output);
+
+        // Turn on Waveshare HAT 3.3V power switch (GPIO 18 HIGH) and allow rail to stabilize
+        GpioController?.Write(GpioPwrPin, PinValue.High);
+        GpioController?.Write(GpioResetPin, PinValue.High);
+        GpioController?.Write(GpioSpiDcPin, PinValue.Low);
+        Thread.Sleep(100);
+
+        Console.WriteLine($"[EPaperDisplayHardware] Initialized GPIO (PWR=18:High, RST=17:High, DC=25:Low, BUSY=24:{BusyPin}) and SPI0.0 (2MHz).");
 
         SpiDevice = spiDevice;
     }
@@ -111,6 +124,7 @@ internal sealed class EPaperDisplayHardware : IEPaperDisplayHardware
 
         GpioController?.Write(GpioSpiDcPin, PinValue.Low);
         GpioController?.Write(GpioResetPin, PinValue.Low);
+        GpioController?.Write(GpioPwrPin, PinValue.Low);
 
         GpioController?.Dispose();
         GpioController = null;
@@ -151,9 +165,19 @@ internal sealed class EPaperDisplayHardware : IEPaperDisplayHardware
         SpiDevice?.Write(buffer);
     }
 
-    /// <summary> Write data to the SPI device </summary>
+    /// <summary> Write data to the SPI device (chunked to 4096 bytes for Linux spidev compatibility) </summary>
     /// <param name="buffer">The buffer that contains the data to be written to the SPI device</param>
-    public void Write(byte[] buffer) => SpiDevice?.Write(buffer);
+    public void Write(byte[] buffer)
+    {
+        if (SpiDevice is null) return;
+        const int maxChunkSize = 4096;
+        ReadOnlySpan<byte> span = buffer;
+        for (int offset = 0; offset < span.Length; offset += maxChunkSize)
+        {
+            int length = Math.Min(maxChunkSize, span.Length - offset);
+            SpiDevice.Write(span.Slice(offset, length));
+        }
+    }
 
     /// <summary> Write a byte to the SPI device </summary>
     /// <param name="value">The byte to be written to the SPI device</param>
@@ -169,8 +193,15 @@ internal sealed class EPaperDisplayHardware : IEPaperDisplayHardware
     /// <returns></returns>
     private static GpioController CreateGpioController()
     {
-        GpioController gpioController = new();
-        return gpioController;
+        try
+        {
+            return new GpioController();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[EPaperDisplayHardware] Default GpioController failed ({ex.Message}); falling back to LibGpiodDriver(0) on /dev/gpiochip0.");
+            return new GpioController(new System.Device.Gpio.Drivers.LibGpiodDriver(0));
+        }
     }
 
     /// <summary> Create the SPI Device </summary>

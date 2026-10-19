@@ -1,4 +1,4 @@
-﻿#region Copyright
+#region Copyright
 // --------------------------------------------------------------------------------------------------------------------
 // MIT License
 // Copyright(c) 2022 Andre Wehrli
@@ -159,6 +159,7 @@ internal class Epd5in65f : EPaperDisplayBase
         SendCommand(Epd5in65fCommands.DisplayRefresh);
         Thread.Sleep(100);
         WaitUntilReady();
+        PowerOff();
     }
 
     /// <summary> Convert a pixel to a DataByte </summary>

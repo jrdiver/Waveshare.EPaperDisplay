@@ -1,4 +1,4 @@
-﻿#region Copyright
+#region Copyright
 // --------------------------------------------------------------------------------------------------------------------
 // MIT License
 // Copyright(c) 2020 Greg Cannon
@@ -76,6 +76,21 @@ internal enum Epd7In5_V2Commands
 
     /// <summary> Auto Sequence (AUTO) (R17H) </summary>
     AutoSequence = 0x17,
+
+    /// <summary> VCOM LUT (LUTC) (R20H) </summary>
+    LutVcom = 0x20,
+
+    /// <summary> W2W LUT (LUTWW) (R21H) </summary>
+    LutWhiteToWhite = 0x21,
+
+    /// <summary> B2W LUT (LUTBW) (R22H) </summary>
+    LutBlackToWhite = 0x22,
+
+    /// <summary> W2B LUT (LUTWB) (R23H) </summary>
+    LutWhiteToBlack = 0x23,
+
+    /// <summary> B2B LUT (LUTBB) (R24H) </summary>
+    LutBlackToBlack = 0x24,
 
     /// <summary> KW LUT option (KWOPT) (R2BH) </summary>
     LutOption = 0x2b,

@@ -1,4 +1,4 @@
-﻿#region Copyright
+#region Copyright
 // --------------------------------------------------------------------------------------------------------------------
 // MIT License
 // Copyright(c) 2019 Andre Wehrli
@@ -148,6 +148,7 @@ internal sealed class Epd7In5Bc : EPaperDisplayBase
         SendCommand(Epd7In5BcCommands.DisplayRefresh);
         Thread.Sleep(100);
         WaitUntilReady();
+        PowerOff();
     }
 
     /// <summary> Convert a pixel to a DataByte </summary>

@@ -35,7 +35,7 @@ internal abstract class EPaperDisplayBase : IEPaperDisplayInternal
     #region Constants
 
     /// <summary> Timeout for the device Wait Until Ready</summary>
-    private const int WaitUntilReadyTimeout = 50000;
+    private const int WaitUntilReadyTimeout = 10000;
 
     #endregion Constants
 
@@ -145,11 +145,17 @@ internal abstract class EPaperDisplayBase : IEPaperDisplayInternal
         Stopwatch timeoutTimer = Stopwatch.StartNew();
         do
         {
-            //SendCommand(GetStatusCommand);
             busy = !(EPaperDisplayHardware.BusyPin == PinValue.High);
+            if (!busy)
+                break;
 
             if (timeoutTimer.ElapsedMilliseconds > timeout)
+            {
+                Console.WriteLine($"Hardware Ready Wait TIMED OUT after {timeoutTimer.ElapsedMilliseconds}ms! BusyPin={EPaperDisplayHardware.BusyPin} (Called by {caller})");
                 return false;
+            }
+
+            Thread.Sleep(10);
         }
         while (busy);
         Console.WriteLine($"Hardware Ready Wait completed in {timeoutTimer.ElapsedMilliseconds}ms (Called by {caller})");
@@ -162,12 +168,16 @@ internal abstract class EPaperDisplayBase : IEPaperDisplayInternal
         if (EPaperDisplayHardware is null)
             throw new InvalidOperationException("EPaperDisplayHardware is not initialized.");
 
+        PinValue before = EPaperDisplayHardware.BusyPin;
         EPaperDisplayHardware.ResetPin = PinValue.High;
         Thread.Sleep(20);
         EPaperDisplayHardware.ResetPin = PinValue.Low;
-        Thread.Sleep(2);
+        Thread.Sleep(5);
+        PinValue during = EPaperDisplayHardware.BusyPin;
         EPaperDisplayHardware.ResetPin = PinValue.High;
-        Thread.Sleep(20);
+        Thread.Sleep(50);
+        PinValue after = EPaperDisplayHardware.BusyPin;
+        Console.WriteLine($"[Reset] BusyPin Before={before}, DuringLow={during}, After={after}");
     }
 
     /// <summary> Display an Image on the Display </summary>
@@ -202,6 +212,12 @@ internal abstract class EPaperDisplayBase : IEPaperDisplayInternal
         TurnOnDisplay();
     }
 
+    /// <summary> Display a 4-level grayscale image on supported displays (falls back to standard DisplayImage if not overridden). </summary>
+    public virtual void DisplayImage4Gray(IRawImage rawImage)
+    {
+        DisplayImage(rawImage, false, false);
+    }
+
     /// <summary> Initialize the Display with the Hardware Interface </summary>
     /// <param name="ePaperDisplayHardware"></param>
     public void Initialize(IEPaperDisplayHardware ePaperDisplayHardware)
@@ -209,6 +225,7 @@ internal abstract class EPaperDisplayBase : IEPaperDisplayInternal
         EPaperDisplayHardware = ePaperDisplayHardware;
 
         DeviceInitialize();
+        PowerOff();
 
         IsPalletMonochrome = true;
         foreach (ByteColor color in SupportedByteColors)
