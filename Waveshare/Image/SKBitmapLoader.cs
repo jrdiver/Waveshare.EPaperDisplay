@@ -58,7 +58,7 @@ internal class SKBitmapLoader : EPaperImageBase<SKBitmap>, IEPaperDisplaySKBitma
 
         // Resize directly returns a new SKBitmap instance which is safely passed into SKBitmapRawImage
         // SKBitmapRawImage implements IDisposable and will dispose this new SKBitmap when the rawImage is disposed
-        SKBitmap resizedImage = image.Resize(new SKImageInfo(maxWith, maxHeight, SKColorType.Bgra8888), new SKSamplingOptions(SKCubicResampler.Mitchell));
+        SKBitmap resizedImage = image.Resize(new SKImageInfo(maxWith, maxHeight, SKColorType.Bgra8888), new(SKCubicResampler.Mitchell));
         return new SKBitmapRawImage(resizedImage);
     }
 

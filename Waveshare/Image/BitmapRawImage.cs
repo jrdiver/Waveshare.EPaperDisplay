@@ -79,7 +79,7 @@ internal sealed class BitmapRawImage : IRawImage
     public BitmapRawImage(Bitmap bitmap, int maxWidth, int maxHeight)
     {
         Bitmap = bitmap;
-        BitmapData = bitmap.LockBits(new Rectangle(0, 0, maxWidth, maxHeight), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
+        BitmapData = bitmap.LockBits(new(0, 0, maxWidth, maxHeight), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
         BytesPerPixel = BitmapData.Stride / bitmap.Width;
     }
 

@@ -105,8 +105,6 @@ internal sealed class Epd7In5_V2 : EPaperDisplayBase
     /// </summary>
     public override void PowerOff()
     {
-        SendCommand(Epd7In5_V2Commands.VcomAndDataIntervalSetting);
-        SendData(0xF7);
         SendCommand(Epd7In5_V2Commands.PowerOff);
         DeviceWaitUntilReady();
     }
@@ -177,7 +175,6 @@ internal sealed class Epd7In5_V2 : EPaperDisplayBase
             DeviceInitialize();
 
             // Seed the 'Old' image buffer (0x10) with inverted data.
-            // This allows future Partial Updates to know the current screen state and avoid flashing.
             _invertPolarity = true;
             SendCommand(Epd7In5_V2Commands.DataStartTransmission1);
             if (dithering)
@@ -185,9 +182,19 @@ internal sealed class Epd7In5_V2 : EPaperDisplayBase
             else
                 SendBitmapToDevice(rawImage.ScanLine, rawImage.Stride, rawImage.Width, rawImage.Height);
             _invertPolarity = false;
-            
-            // Now send the normal image to the 'New' buffer (0x13) and refresh
+
+            // Send the normal image to the 'New' buffer (0x13) and perform the full refresh
             base.DisplayImage(rawImage, dithering, partialRefresh, x, y);
+
+            // Re-seed 0x10 after TurnOnDisplay() because CDI=0x10 (N2OCP=1) copies 0x13 over 0x10 at the end of refresh
+            _invertPolarity = true;
+            SendCommand(Epd7In5_V2Commands.DataStartTransmission1);
+            if (dithering)
+                SendDitheredBitmapToDevice(rawImage.ScanLine, rawImage.Stride, rawImage.Width, rawImage.Height);
+            else
+                SendBitmapToDevice(rawImage.ScanLine, rawImage.Stride, rawImage.Width, rawImage.Height);
+            _invertPolarity = false;
+
             PowerOff();
             return;
         }
@@ -269,60 +276,69 @@ internal sealed class Epd7In5_V2 : EPaperDisplayBase
         SendData(0x6E);
     }
 
-    // 42-byte custom 4-Gray waveform LUTs for UC8179 (works on pre-Oct 2023 panels via PanelSetting 0x3F)
+    // 42-byte custom 4-Gray waveform LUTs for UC8179 (works on pre-Oct 2023 panels via PanelSetting 0x3F).
+    // CRITICAL HARDWARE RULE: Never drive +15V (01, Black) and -15V (10, White) simultaneously in the same
+    // Group 2 phase on dithered images, or inter-column capacitance across 800 alternating columns sags the rail and fades the image.
+    // - Group 1 drives all pixels in unison and finishes with 15f of clean White (-15V).
+    // - Group 2 Phase A (6f): ONLY -15V (White) and 0V are used (WW, BW, WB hold -15V White; BB is 0V).
+    // - Group 2 Phases B/C/D (6f, 3f, 2f): ONLY +15V (Black) and 0V are used (zero -15V pulses!):
+    //     * Pure White (WW = 0x80 = 10_00_00_00): 6f White, then 0V
+    //     * Light Gray (BW = 0x81 = 10_00_00_01): 6f White, 9f 0V, then final 2f Black (+15V)
+    //     * Dark Gray  (WB = 0x85 = 10_00_01_01): 6f White, 6f 0V, then final 5f Black (+15V, 3f + 2f)
+    //     * Pure Black (BB = 0x15 = 00_01_01_01): 6f 0V, then continuous 11f Black (+15V, 6f + 3f + 2f)
     private static readonly byte[] Lut4GrayVcom =
     [
         0x00, 0x0F, 0x0F, 0x00, 0x00, 0x01,
         0x00, 0x0F, 0x01, 0x0F, 0x01, 0x02,
-        0x00, 0x0F, 0x0F, 0x00, 0x00, 0x01,
+        0x00, 0x06, 0x06, 0x03, 0x02, 0x01,
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00
     ];
 
-    // (0,0) -> Pure White (15 frames VDL White in final phase)
+    // (0,0) -> Pure White: 6f White (-15V) in Phase 2A, then 0V (00) during Black phases (0x80 = 10_00_00_00)
     private static readonly byte[] Lut4GrayWW =
     [
-        0x10, 0x0F, 0x0F, 0x00, 0x00, 0x01,
-        0x84, 0x0F, 0x01, 0x0F, 0x01, 0x02,
-        0x20, 0x0F, 0x0F, 0x00, 0x00, 0x01,
+        0x50, 0x0F, 0x0F, 0x00, 0x00, 0x01,
+        0x68, 0x0F, 0x01, 0x0F, 0x01, 0x02,
+        0x80, 0x06, 0x06, 0x03, 0x02, 0x01,
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00
     ];
 
-    // (1,0) -> Light Gray (11 frames VDL White + 4 frames VDH Black in final phase)
+    // (1,0) -> Light Gray: 6f White (-15V) in Phase 2A, 9f 0V, then final 2f Black (+15V) in Phase 2D (0x81 = 10_00_00_01)
     private static readonly byte[] Lut4GrayBW =
     [
-        0x10, 0x0F, 0x0F, 0x00, 0x00, 0x01,
-        0x84, 0x0F, 0x01, 0x0F, 0x01, 0x02,
-        0x24, 0x0F, 0x0B, 0x04, 0x00, 0x01,
+        0x50, 0x0F, 0x0F, 0x00, 0x00, 0x01,
+        0x68, 0x0F, 0x01, 0x0F, 0x01, 0x02,
+        0x81, 0x06, 0x06, 0x03, 0x02, 0x01,
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00
     ];
 
-    // (0,1) -> Dark Gray (6 frames VDL White + 9 frames VDH Black in final phase)
+    // (0,1) -> Dark Gray: 6f White (-15V) in Phase 2A, 6f 0V, then final 5f Black (+15V) in Phases 2C+2D (0x85 = 10_00_01_01)
     private static readonly byte[] Lut4GrayWB =
     [
-        0x80, 0x0F, 0x0F, 0x00, 0x00, 0x01,
-        0x84, 0x0F, 0x01, 0x0F, 0x01, 0x02,
-        0x24, 0x0F, 0x06, 0x09, 0x00, 0x01,
+        0xA0, 0x0F, 0x0F, 0x00, 0x00, 0x01,
+        0x68, 0x0F, 0x01, 0x0F, 0x01, 0x02,
+        0x85, 0x06, 0x06, 0x03, 0x02, 0x01,
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00
     ];
 
-    // (1,1) -> Pure Black (15 frames VDH Black in final phase)
+    // (1,1) -> Pure Black: 6f 0V in Phase 2A, then 11f continuous Black (+15V) in Phases 2B+2C+2D (0x15 = 00_01_01_01)
     private static readonly byte[] Lut4GrayBB =
     [
-        0x80, 0x0F, 0x0F, 0x00, 0x00, 0x01,
-        0x84, 0x0F, 0x01, 0x0F, 0x01, 0x02,
-        0x40, 0x0F, 0x0F, 0x00, 0x00, 0x01,
+        0xA0, 0x0F, 0x0F, 0x00, 0x00, 0x01,
+        0x68, 0x0F, 0x01, 0x0F, 0x01, 0x02,
+        0x15, 0x06, 0x06, 0x03, 0x02, 0x01,
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -341,7 +357,7 @@ internal sealed class Epd7In5_V2 : EPaperDisplayBase
         SendData(0x11); // VSHR
 
         SendCommand(Epd7In5_V2Commands.VcmDcSetting);
-        SendData(0x24);
+        SendData(0x18);
 
         SendCommand(Epd7In5_V2Commands.BoosterSoftStart);
         SendData(0x27);
@@ -473,9 +489,9 @@ internal sealed class Epd7In5_V2 : EPaperDisplayBase
         Reset();
 
         SendCommand(Epd7In5_V2Commands.BoosterSoftStart);
-        SendData(0x17);
-        SendData(0x17);
         SendData(0x27);
+        SendData(0x27);
+        SendData(0x2F);
         SendData(0x17);
 
         SendCommand(Epd7In5_V2Commands.PowerSetting);

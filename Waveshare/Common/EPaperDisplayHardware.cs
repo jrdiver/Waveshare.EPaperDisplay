@@ -195,12 +195,12 @@ internal sealed class EPaperDisplayHardware : IEPaperDisplayHardware
     {
         try
         {
-            return new GpioController();
+            return new();
         }
         catch (Exception ex)
         {
             Console.WriteLine($"[EPaperDisplayHardware] Default GpioController failed ({ex.Message}); falling back to LibGpiodDriver(0) on /dev/gpiochip0.");
-            return new GpioController(new System.Device.Gpio.Drivers.LibGpiodDriver(0));
+            return new(new System.Device.Gpio.Drivers.LibGpiodDriver(0));
         }
     }
 
